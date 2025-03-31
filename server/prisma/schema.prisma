@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id              String    @id @default(uuid())
+  name            String
+  email           String    @unique
+  password        String
+  phone           String?
+  profileImageUrl String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  groups          GroupMember[]
+  createdGroups   Group[]
+  posts           Post[]
+  comments        Comment[]
+}
+
+// Group model
+model Group {
+  id              String    @id @default(uuid())
+  name            String
+  code            String    @unique
+  groupImageUrl   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  creatorId       String
+  creator         User      @relation(fields: [creatorId], references: [id])
+  members         GroupMember[]
+  posts           Post[]
+}
+
+// GroupMember (join table)
+model GroupMember {
+  id              String    @id @default(uuid())
+  joinedAt        DateTime  @default(now())
+  
+  // Relations
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  groupId         String
+  group           Group     @relation(fields: [groupId], references: [id])
+  
+  @@unique([userId, groupId])
+}
+
+// Post model
+model Post {
+  id              String    @id @default(uuid())
+  title           String
+  details         String    // Combined description & location
+  postType        PostType  @default(LOST)
+  status          PostStatus @default(ACTIVE)
+  imageUrl        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  authorId        String
+  author          User      @relation(fields: [authorId], references: [id])
+  groupId         String
+  group           Group     @relation(fields: [groupId], references: [id])
+  comments        Comment[]
+}
+
+// Comment model
+model Comment {
+  id              String    @id @default(uuid())
+  content         String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  authorId        String
+  author          User      @relation(fields: [authorId], references: [id])
+  postId          String
+  post            Post      @relation(fields: [postId], references: [id])
+}
+
+// Enum for post type
+enum PostType {
+  LOST
+  FOUND
+}
+
+// Enum for post status
+enum PostStatus {
+  ACTIVE
+  CLAIMED
+}

@@ -5,7 +5,6 @@ import SignupPage from './pages/SignUp';
 import LoginPage from './pages/LoginPage';
 import Navbar from './components/Navbar';
 import Groups from './pages/HomePage';
-import TeamDetailView from './components/TeamDetailView';
 
 const App: React.FC = () => {
   return (
@@ -16,7 +15,6 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage/>} />
         <Route path="/signup" element={<SignupPage/>} />
         <Route path="/Groups" element={<Groups/>} />
-        <Route path="team-detail-view/:abbreviation" element={<TeamDetailView />} />
         <Route path="/docs" element={<div>Documentation (Coming Soon)</div>} />
         <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>

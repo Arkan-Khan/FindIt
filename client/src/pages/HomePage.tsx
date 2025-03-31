@@ -1,197 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GroupCard from '../components/GroupCard';
 import Modal from '../components/Modal';
 
-interface Team {
+interface Group {
   id: string;
-  teamName: string;
+  name: string;
   description: string;
+  profileImage?: string;
 }
 
-const Groups: React.FC = () => {
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [isJoinModalOpen, setIsJoinModalOpen] = useState<boolean>(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [teamName, setTeamName] = useState<string>('');
-  const [teamDesc, setTeamDesc] = useState<string>('');
-  const [msg, setMsg] = useState<string>('');
-  const [teamCode, setTeamCode] = useState<string>('');
-  const [Groups, setGroups] = useState<Team[]>([]); // Mock Groups for now
+const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [groupDesc, setGroupDesc] = useState('');
+  const [teamCode, setTeamCode] = useState('');
+  const [msg, setMsg] = useState('');
 
-  const colorArray = ['#8B5CF6', '#3B82F6', '#059669', '#EC4899', '#6B7280'];
+  // Dummy groups data
+  const [groups, setGroups] = useState<Group[]>([
+    { 
+      id: '1', 
+      name: 'Study Group', 
+      description: 'Advanced learning',
+      profileImage: '/study-group.png'
+    },
+    { 
+      id: '2', 
+      name: 'Work Colleagues', 
+      description: 'Professional network',
+      profileImage: '/work-group.png'
+    },
+    { 
+      id: '3', 
+      name: 'Family', 
+      description: 'Family connections',
+      profileImage: '/family-group.png'
+    },
+    { 
+      id: '4', 
+      name: 'Sports Team', 
+      description: 'Athletic group',
+      profileImage: '/sports-group.png'
+    }
+  ]);
 
-  // Simulating data instead of fetching from backend
-  useEffect(() => {
-    // Mock admin status
-    const adminStatus = localStorage.getItem('isAdmin');
-    setIsAdmin(adminStatus === 'true');
-
-    // Mock Groups data
-    const mockGroups: Team[] = [
-      { id: '1', teamName: 'Mathematics', description: 'Advanced math group' },
-      { id: '2', teamName: 'Physics', description: 'Physics study group' },
-      { id: '3', teamName: 'Computer Science', description: 'Programming and algorithms' },
-      { id: '4', teamName: 'Chemistry', description: 'Chemistry lab group' },
-      { id: '5', teamName: 'Biology', description: 'Biology research group' }
-    ];
-    
-    setGroups(mockGroups);
-  }, []);
-
-  const handleTeamClick = (abbreviation: string, color: string, title: string) => {
-    navigate(`/team-detail-view/${abbreviation}`, { state: { abbreviation, color, title } });
+  const handleGroupClick = (groupId: string) => {
+    navigate(`/group-detail-view/${groupId}`);
   };
 
-  const handleTeamCreate = () => {
-    if (teamName.trim() === '') {
-      setMsg('Team name is required');
+  const handleCreateGroup = () => {
+    if (groupName.trim() === '') {
+      setMsg('Group name is required');
       return;
     }
-    
-    // Instead of API call, just add to the local state
-    const newTeam: Team = {
+
+    const newGroup: Group = {
       id: Date.now().toString(),
-      teamName: teamName,
-      description: teamDesc
+      name: groupName,
+      description: groupDesc
     };
-    
-    setGroups([...Groups, newTeam]);
-    setMsg('Team created successfully');
+
+    setGroups([...groups, newGroup]);
+    setMsg('Group created successfully');
     setIsCreateModalOpen(false);
-    setTeamName('');
-    setTeamDesc('');
+    setGroupName('');
+    setGroupDesc('');
   };
 
-  const handleJoinTeam = () => {
+  const handleJoinGroup = () => {
     if (teamCode.trim() === '') {
       setMsg('Team code is required');
       return;
     }
-    
-    // Mock successful join
-    setMsg('Successfully joined the team');
+
+    setMsg('Successfully joined the group');
     setIsJoinModalOpen(false);
     setTeamCode('');
   };
 
-  const generateAbbreviation = (teamName: string): string => {
-    return teamName.slice(0, 2).toUpperCase();
-  };
-
-  const getRandomColor = (): string => {
-    return colorArray[Math.floor(Math.random() * colorArray.length)];
-  };
-
   return (
-    <>
-      <div className="p-6 pt-20">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Groups</h1>
-          <div>
-            {isAdmin ? (
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors flex items-center"
-              >
-                <span className="mr-2">+</span>
-                Create Team
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsJoinModalOpen(true)}
-                className="border border-gray-300 py-2 px-4 rounded hover:bg-gray-50 transition-colors flex items-center"
-              >
-                <span className="mr-2">👥</span>
-                Join Team
-              </button>
-            )}
+    <div className="min-h-screen bg-white text-black p-6 pt-24">
+      <div className="container mx-auto">
+        <div className="page-header mb-6 flex justify-between items-center border-b pb-4 border-gray-200">
+          <h1 className="text-3xl font-bold">Groups</h1>
+          <div className="action-buttons space-x-4">
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="border border-black text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Create Group
+            </button>
+            <button 
+              onClick={() => setIsJoinModalOpen(true)}
+              className="bg-black text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors"
+            >
+              Join Group
+            </button>
           </div>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">{isAdmin ? "My Groups" : "Classes"}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Groups.map((team) => {
-              const abbreviation = generateAbbreviation(team.teamName);
-              const color = getRandomColor();
-              
-              return (
-                <GroupCard
-                  key={team.id}
-                  abbreviation={abbreviation}
-                  color={color}
-                  title={team.teamName}
-                  onClick={() => handleTeamClick(abbreviation, color, team.teamName)}
-                />
-              );
-            })}
-          </div>
+        <div className="groups-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {groups.map((group) => (
+            <GroupCard
+              key={group.id}
+              id={group.id}
+              groupName={group.name}
+              profileImage={group.profileImage}
+              onClick={() => handleGroupClick(group.id)}
+            />
+          ))}
         </div>
 
-        {/* Modals */}
+        {/* Join Group Modal */}
         <Modal
           isOpen={isJoinModalOpen}
           onClose={() => setIsJoinModalOpen(false)}
-          title="Join a Team"
+          title="Join a Group"
         >
           <div className="space-y-4">
             <p className="text-sm text-gray-500">
-              Enter the team code to join an existing team
+              Enter the group code to join an existing group
             </p>
             <input
               type="text"
               value={teamCode}
               onChange={(e) => setTeamCode(e.target.value)}
-              placeholder="Enter team code"
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter group code"
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black"
             />
             <button 
-              onClick={handleJoinTeam}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
+              onClick={handleJoinGroup}
+              className="w-full bg-black text-white py-2 px-4 rounded hover:opacity-90 transition-colors"
             >
-              Join Team
+              Join Group
             </button>
-            {msg.length !== 0 && <h1 className="text-green-500">{msg}</h1>}
+            {msg && <p className="text-green-600">{msg}</p>}
           </div>
         </Modal>
 
+        {/* Create Group Modal */}
         <Modal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          title="Create a New Team"
+          title="Create a New Group"
         >
           <div className="space-y-4">
             <p className="text-sm text-gray-500">
-              Fill in the details to create your team
+              Fill in the details to create your group
             </p>
             <input
               type="text"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              placeholder="Team name"
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder="Group name"
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black"
             />
             <input
               type="text"
-              value={teamDesc}
-              onChange={(e) => setTeamDesc(e.target.value)}
-              placeholder="Team description"
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={groupDesc}
+              onChange={(e) => setGroupDesc(e.target.value)}
+              placeholder="Group description"
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black"
             />
             <button 
-              onClick={handleTeamCreate}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
+              onClick={handleCreateGroup}
+              className="w-full bg-black text-white py-2 px-4 rounded hover:opacity-90 transition-colors"
             >
-              Create Team
+              Create Group
             </button>
-            {msg.length !== 0 && <h1 className="text-green-500">{msg}</h1>}
+            {msg && <p className="text-green-600">{msg}</p>}
           </div>
         </Modal>
       </div>
-    </>
+    </div>
   );
 };
 
-export default Groups;
+export default HomePage;

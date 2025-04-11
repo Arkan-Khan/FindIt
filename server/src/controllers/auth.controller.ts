@@ -116,58 +116,68 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
+// controllers/authController.ts
+import { deleteCloudinaryImage } from '../utils/cloudinary';
+
 export const updateProfile = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user.id; // Extract user ID from token
+  try {
+    const userId = (req as any).user.id;
 
-        // Validate request body
-        const updateProfileSchema = z.object({
-            phone: z.string()
-                .regex(/^\d{10}$/, 'Phone number must be exactly 10 digits')
-                .optional(),
-            profileImageUrl: z.string().url('Invalid URL format').optional(),
-        });
+    const updateProfileSchema = z.object({
+      phone: z.string().regex(/^\d{10}$/).optional(),
+      profileImageUrl: z.string().url().optional(),
+    });
 
-        const validatedData = updateProfileSchema.parse(req.body);
+    const validatedData = updateProfileSchema.parse(req.body);
 
-        // Fetch the current user data from the database
-        const existingUser = await prisma.user.findUnique({
-            where: { id: userId },
-        });
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
-        if (!existingUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Check if the new data is different from existing data
-        const isPhoneSame = validatedData.phone === undefined || validatedData.phone === existingUser.phone;
-        const isProfileImageSame = validatedData.profileImageUrl === undefined || validatedData.profileImageUrl === existingUser.profileImageUrl;
-
-        if (isPhoneSame && isProfileImageSame) {
-            return res.status(400).json({ message: "No changes detected. Profile remains the same." });
-        }
-
-        // Update only if there are changes
-        const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: validatedData,
-        });
-
-        res.status(200).json({
-            message: 'Profile updated successfully!',
-            user: {
-                id: updatedUser.id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                phone: updatedUser.phone,
-                profileImageUrl: updatedUser.profileImageUrl,
-            },
-        });
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ errors: error.errors });
-        }
-        console.error(error);
-        res.status(500).json({ message: 'Something went wrong' });
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    const isPhoneSame =
+      validatedData.phone === undefined || validatedData.phone === existingUser.phone;
+    const isProfileImageSame =
+      validatedData.profileImageUrl === undefined || validatedData.profileImageUrl === existingUser.profileImageUrl;
+
+    if (isPhoneSame && isProfileImageSame) {
+      return res.status(400).json({ message: "No changes detected. Profile remains the same." });
+    }
+
+    // 🔥 If new image URL is different and existing image exists, delete the old one
+    if (
+      validatedData.profileImageUrl &&
+      existingUser.profileImageUrl &&
+      validatedData.profileImageUrl !== existingUser.profileImageUrl
+    ) {
+      await deleteCloudinaryImage(existingUser.profileImageUrl);
+    }
+
+    // ✅ Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: validatedData,
+    });
+
+    res.status(200).json({
+      message: 'Profile updated successfully!',
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        profileImageUrl: updatedUser.profileImageUrl,
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ errors: error.errors });
+    }
+    console.error(error);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
 };
+

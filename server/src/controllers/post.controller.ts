@@ -4,7 +4,6 @@ import { z } from "zod";
 
 const prisma = new PrismaClient();
 
-// Zod schemas for validation
 const createPostSchema = z.object({
     title: z.string().min(1, "Title is required"),
     details: z.string().min(1, "Details are required"),
@@ -26,16 +25,27 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Validate request body
         const validatedData = createPostSchema.parse(req.body);
 
-        // Check if the group exists
+        // Checking if the group exists
         const group = await prisma.group.findUnique({
             where: { id: validatedData.groupId },
         });
 
         if (!group) {
             return res.status(404).json({ message: "Group not found" });
+        }
+
+        // Checking if the user is a member of the group
+        const isMember = await prisma.groupMember.findFirst({
+            where: {
+                groupId: validatedData.groupId,
+                userId: userId,
+            },
+        });
+
+        if (!isMember) {
+            return res.status(403).json({ message: "You are not a member of this group" });
         }
 
         // Create the post
@@ -61,8 +71,17 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
 };
 
 // Get Posts by Group ID
-export const getPostsByGroupId = async (req: Request, res: Response) => {
+export const getPostsByGroupId = async (
+    req: Request & { user?: { id: string; email: string } },
+    res: Response
+) => {
     try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
         const groupId = req.params.groupId;
 
         // Validate groupId
@@ -77,6 +96,18 @@ export const getPostsByGroupId = async (req: Request, res: Response) => {
 
         if (!group) {
             return res.status(404).json({ message: "Group not found" });
+        }
+
+        // Check if the user is the creator or a member of the group
+        const isMember = await prisma.groupMember.findFirst({
+            where: {
+                groupId,
+                userId,
+            },
+        });
+
+        if (group.creatorId !== userId && !isMember) {
+            return res.status(403).json({ message: "You are not a member of this group" });
         }
 
         // Fetch posts for the group

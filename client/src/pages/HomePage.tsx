@@ -6,7 +6,6 @@ import Modal from '../components/Modal';
 interface Group {
   id: string;
   name: string;
-  description: string;
   profileImage?: string;
 }
 
@@ -24,25 +23,21 @@ const HomePage: React.FC = () => {
     { 
       id: '1', 
       name: 'Study Group', 
-      description: 'Advanced learning',
       profileImage: '/study-group.png'
     },
     { 
       id: '2', 
       name: 'Work Colleagues', 
-      description: 'Professional network',
       profileImage: '/work-group.png'
     },
     { 
       id: '3', 
       name: 'Family', 
-      description: 'Family connections',
       profileImage: '/family-group.png'
     },
     { 
       id: '4', 
       name: 'Sports Team', 
-      description: 'Athletic group',
       profileImage: '/sports-group.png'
     }
   ]);
@@ -59,8 +54,7 @@ const HomePage: React.FC = () => {
 
     const newGroup: Group = {
       id: Date.now().toString(),
-      name: groupName,
-      description: groupDesc
+      name: groupName
     };
 
     setGroups([...groups, newGroup]);

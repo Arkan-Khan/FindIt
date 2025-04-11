@@ -1,11 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 
 const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
       <section className="bg-white text-black pt-40 pb-10 px-4">
         <div className="container mx-auto max-w-6xl flex justify-center items-center"> {/* Added flex justify-center items-center */}
             <div className="text-center"> {/* Added text-center for centering content */}

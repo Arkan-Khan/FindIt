@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { Link } from 'react-router-dom'; 
+import { Link, useNavigate } from 'react-router-dom'; 
+import { useSetRecoilState, useRecoilValue} from 'recoil';
+import { userState } from '../atoms/userAtom';
+import axios from 'axios';
+import Navbar from '../components/Navbar';
 
 const LoginPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +12,19 @@ const LoginPage: React.FC = () => {
     password: '',
     rememberMe: false
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const setUser = useSetRecoilState(userState);
+  const user = useRecoilValue(userState);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If user is already logged in, redirect to home
+    if (user) {
+      navigate('/home');
+    }
+  }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -17,10 +34,34 @@ const LoginPage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', formData);
+    setError('');
+    setIsLoading(true);
+  
+    try {
+      const response = await axios.post(
+        'http://localhost:5000/auth/login',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setUser(response.data.user);
+      navigate('/Groups');
+    } catch (error: any) {
+      console.error('Login failed:', error);
+
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || 'Login failed. Please try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -34,6 +75,11 @@ const LoginPage: React.FC = () => {
             </div>
             <h2 className="mt-2 mb-6 text-3xl font-extrabold text-gray-900">Sign in to FindIt</h2>
             </div>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+              {error}
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -84,18 +130,41 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="rememberMe"
+                  name="rememberMe"
+                  type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
+                />
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
+                  Remember me
+                </label>
+              </div>
+              
+              <div className="text-sm">
+                <Link to="/forgot-password" className="font-medium text-black hover:text-gray-800">
+                  Forgot your password?
+                </Link>
+              </div>
+            </div>
+
             <div className="flex justify-center">
               <button
                 type="submit"
-                className="py-3 px-10 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors"
+                disabled={isLoading}
+                className={`py-3 px-10 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                Sign in
+                {isLoading ? 'Signing in...' : 'Sign in'}
               </button>
             </div>
           </form>
           <div className="text-center mt-3">
               <p className="text-gray-600">
-                Already have an account?{' '}
+                Don't have an account?{' '}
                 <Link to="/signup" className="text-gray-900 font-medium hover:underline">
                   Register
                 </Link>

@@ -6,14 +6,42 @@ import { userAtom } from '../recoil/userAtom';
 import { UserState } from '../types/user';
 import CreateGroupModal from '../components/CreateGroupModal';
 import JoinGroupModal from '../components/JoinGroupModal';
-import { Loader2 } from 'lucide-react'; // 🌀 Loader from lucide
+import { Loader2 } from 'lucide-react';
 
 interface Group {
   id: string;
   name: string;
   code: string;
   groupImageUrl: string | null;
-  creator: { name: string };
+  creator?: { 
+    id: string;
+    name: string;
+    email: string;
+  };
+  members?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  }[];
+}
+
+export interface GroupDetails {
+  id: string;
+  name: string;
+  code: string;
+  groupImageUrl: string | null;
+  creator: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  members: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  }[];
 }
 
 const GroupsPage: React.FC = () => {
@@ -21,7 +49,7 @@ const GroupsPage: React.FC = () => {
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [loading, setLoading] = useState(true); // 👈 loading state
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -46,12 +74,37 @@ const GroupsPage: React.FC = () => {
       } catch (err) {
         console.error('Error fetching groups:', err);
       } finally {
-        setLoading(false); // ✅ Hide loader
+        setLoading(false);
       }
     };
 
     fetchGroups();
   }, [user?.token, backendUrl]);
+
+  const handleCreateOrJoinSuccess = (newGroup: Group) => {
+    setMyGroups(prev => {
+      // Check if the group already exists
+      const exists = prev.some(g => g.id === newGroup.id);
+      if (exists) {
+        return prev;
+      }
+      return [...prev, newGroup];
+    });
+  };
+
+  const handleGroupClick = (group: Group) => {
+    // Ensure all required properties are present before navigating
+    const groupDetails: GroupDetails = {
+      id: group.id,
+      name: group.name,
+      code: group.code,
+      groupImageUrl: group.groupImageUrl,
+      creator: group.creator || { id: '', name: 'Unknown', email: '' },
+      members: group.members || []
+    };
+    
+    navigate(`/groups/${group.id}`, { state: { groupDetails } });
+  };
 
   return (
     <div className="min-h-screen w-full bg-gray-50 pt-20 px-4 md:px-8">
@@ -78,22 +131,22 @@ const GroupsPage: React.FC = () => {
         {showCreateModal && (
           <CreateGroupModal
             onClose={() => setShowCreateModal(false)}
-            onGroupCreated={(newGroup) => setMyGroups((prev) => [...prev, newGroup])}
+            onGroupCreated={handleCreateOrJoinSuccess}
           />
         )}
 
         {showJoinModal && (
           <JoinGroupModal
             onClose={() => setShowJoinModal(false)}
-            onGroupJoined={(newGroup) => setMyGroups((prev) => [...prev, newGroup])}
+            onGroupJoined={handleCreateOrJoinSuccess}
           />
         )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16">
-          <Loader2 className="animate-spin h-8 w-8 text-gray-600 mb-4" />
-          <p className="text-gray-700 font-medium text-lg">Fetching your groups... hang tight 🚀</p>
-        </div>
+            <Loader2 className="animate-spin h-8 w-8 text-gray-600 mb-4" />
+            <p className="text-gray-700 font-medium text-lg">Fetching your groups... hang tight 🚀</p>
+          </div>
         ) : myGroups.length === 0 ? (
           <div className="text-center py-16 bg-gray-100 rounded-lg">
             <p className="text-gray-600">You haven't joined any groups yet.</p>
@@ -103,7 +156,7 @@ const GroupsPage: React.FC = () => {
             {myGroups.map((group) => (
               <div
                 key={group.id}
-                onClick={() => navigate(`/groups/${group.id}`)}
+                onClick={() => handleGroupClick(group)}
                 className="flex items-center bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow"
               >
                 <div className="flex-shrink-0 mr-4">
@@ -112,6 +165,10 @@ const GroupsPage: React.FC = () => {
                       src={group.groupImageUrl || '/default-group.png'}
                       alt={group.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/default-group.png';
+                      }}
                     />
                   </div>
                 </div>
@@ -120,7 +177,9 @@ const GroupsPage: React.FC = () => {
                   <p className="text-gray-600 text-sm truncate">
                     <span className="font-mono">Code: {group.code}</span>
                   </p>
-                  <p className="text-gray-500 text-sm truncate">Created by {group.creator.name}</p>
+                  <p className="text-gray-500 text-sm truncate">
+                    Created by {group.creator?.name || 'Unknown'}
+                  </p>
                 </div>
               </div>
             ))}

@@ -119,6 +119,8 @@ export const getPostsByGroupId = async (
                         id: true,
                         name: true,
                         profileImageUrl: true,
+                        email: true,  // Add this
+                        phone: true,  // Add this
                     },
                 },
             },

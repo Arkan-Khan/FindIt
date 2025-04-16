@@ -12,7 +12,7 @@ const generateGroupCode = (): string => {
 
 // Create Group Controller
 export const createGroup = async (
-    req: Request & { user?: { id: string; email: string } }, 
+    req: Request & { user?: { id: string; email: string; name: string } }, 
     res: Response
 ) => {
     try {
@@ -47,6 +47,27 @@ export const createGroup = async (
                 groupImageUrl: validatedData.groupImageUrl,
                 creatorId: userId,
             },
+            include: {
+                creator: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    }
+                },
+                members: {
+                    select: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                            }
+                        }
+                    }
+                }
+            }
         });
 
         // Add creator as a member
@@ -57,7 +78,13 @@ export const createGroup = async (
             },
         });
 
-        return res.status(201).json({ message: "Group created successfully", group: newGroup });
+        // Format the response to match the expected structure
+        const formattedGroup = {
+            ...newGroup,
+            members: newGroup.members.map(member => member.user)
+        };
+
+        return res.status(201).json({ message: "Group created successfully", group: formattedGroup });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ errors: error.errors });
@@ -69,7 +96,7 @@ export const createGroup = async (
 
 // Join Group Controller
 export const joinGroup = async (
-    req: Request & { user?: { id: string; email: string } }, 
+    req: Request & { user?: { id: string; email: string; name: string } }, 
     res: Response
 ) => {
     try {
@@ -87,7 +114,18 @@ export const joinGroup = async (
         const { code } = joinGroupSchema.parse(req.body);
 
         // Check if group exists
-        const group = await prisma.group.findUnique({ where: { code } });
+        const group = await prisma.group.findUnique({ 
+            where: { code },
+            include: {
+                creator: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    }
+                }
+            }
+        });
 
         if (!group) {
             return res.status(404).json({ message: "Group not found" });
@@ -110,7 +148,39 @@ export const joinGroup = async (
             },
         });
 
-        return res.status(200).json({ message: "Successfully joined the group", group });
+        // Get updated group with members
+        const updatedGroup = await prisma.group.findUnique({
+            where: { id: group.id },
+            include: {
+                creator: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    }
+                },
+                members: {
+                    select: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Format the response to match the expected structure
+        const formattedGroup = {
+            ...updatedGroup,
+            members: updatedGroup?.members?.map(member => member.user) || []
+        };
+
+        return res.status(200).json({ message: "Successfully joined the group", group: formattedGroup });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ errors: error.errors });

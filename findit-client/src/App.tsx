@@ -12,6 +12,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import GroupsPage from './pages/GroupsPage';
+import GroupDetailPage from './pages/GroupDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthWrapper from './components/AuthWrapper';
 
@@ -43,6 +44,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <GroupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:groupId"
+            element={
+              <ProtectedRoute>
+                <GroupDetailPage />
               </ProtectedRoute>
             }
           />

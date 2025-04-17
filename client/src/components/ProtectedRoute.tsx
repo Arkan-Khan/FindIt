@@ -1,14 +1,21 @@
+// src/components/ProtectedRoute.tsx
+import React from 'react';
 import { useRecoilValue } from 'recoil';
-import { Navigate, Outlet } from 'react-router-dom';
-import { userState } from '../atoms/userAtom';
+import { userAtom } from '../recoil/userAtom';
+import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = () => {
-  const user = useRecoilValue(userState);
+type Props = {
+  children: React.ReactNode;
+};
+
+const ProtectedRoute = ({ children }: Props) => {
+  const user = useRecoilValue(userAtom);
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/" replace />;
   }
-  return <Outlet />;
+
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

@@ -4,6 +4,7 @@ import { useRecoilValue } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
 import { MessageCircle } from 'lucide-react';
 import CommentsModal from './CommentsModal';
+import ImageModal from './ImageModal';
 
 interface PostCardProps {
   post: {
@@ -38,6 +39,9 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange }) => {
   const [showComments, setShowComments] = useState(false);
+  const [showFullDetails, setShowFullDetails] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [showProfileImageModal, setShowProfileImageModal] = useState(false);
   const user = useRecoilValue(userAtom);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   
@@ -45,6 +49,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange
   const postType = post.postType || post.type || 'LOST';
   const authorId = post.author?.id || post.user?.id || post.authorId || '';
   const authorName = post.author?.name || post.user?.name || 'Unknown';
+  const profileImageUrl = post.author?.profileImageUrl;
   
   // Extract contact details explicitly
   const authorEmail = post.author?.email || post.user?.email;
@@ -98,18 +103,41 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange
   // Check if contact info exists
   const hasContactInfo = authorEmail || authorPhone;
 
+  // Toggle full details view
+  const toggleDetailsView = () => {
+    setShowFullDetails(!showFullDetails);
+  };
+
+  // Open image modal for post image
+  const handleImageClick = () => {
+    if (post.imageUrl) {
+      setShowImageModal(true);
+    }
+  };
+
+  // Open image modal for profile image
+  const handleProfileImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    if (profileImageUrl) {
+      setShowProfileImageModal(true);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden h-full flex flex-col">
       {/* Header Section with user info and status */}
       <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <div className="h-6 w-6 rounded-full bg-gray-200 mr-2">
-              {post.author?.profileImageUrl && (
+            <div 
+              className="h-6 w-6 rounded-full bg-gray-200 mr-2 overflow-hidden cursor-pointer"
+              onClick={handleProfileImageClick}
+            >
+              {profileImageUrl && (
                 <img
-                  src={post.author.profileImageUrl}
-                  alt=""
-                  className="h-6 w-6 rounded-full"
+                  src={profileImageUrl}
+                  alt={authorName}
+                  className="h-full w-full object-cover"
                 />
               )}
             </div>
@@ -130,29 +158,51 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange
         </div>
       </div>
       
-      {/* Item Image - Fixed height with better proportions */}
-      <div className="w-full h-32 bg-gray-100 overflow-hidden">
+      {/* Item Image - Clickable to open modal */}
+      <div 
+        className="w-full pt-[100%] relative bg-gray-100 cursor-pointer"
+        onClick={handleImageClick}
+      >
         {post.imageUrl ? (
-          <img
-            src={post.imageUrl}
-            alt={post.title}
-            className="w-full h-full object-cover"
-          />
+          <>
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              className="absolute top-0 left-0 w-full h-full object-cover"
+            />
+          </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-gray-400">
+          <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center text-gray-400">
             Item Img
           </div>
         )}
       </div>
       
       {/* Content - showing title and details directly */}
-      <div className="p-3 flex-grow flex flex-col justify-between">
+      <div className="p-4 flex-grow flex flex-col justify-between">
         <div>
           <h3 className="text-base font-semibold text-gray-900 mb-1">{post.title}</h3>
-          <p className="text-xs text-gray-700 mb-2 line-clamp-2">{post.details}</p>
+          
+          {/* Details with expand/collapse functionality */}
+          <div className="mb-3">
+            {showFullDetails ? (
+              <p className="text-xs text-gray-700">{post.details}</p>
+            ) : (
+              <p className="text-xs text-gray-700 line-clamp-2">{post.details}</p>
+            )}
+            
+            {post.details.length > 100 && (
+              <button 
+                onClick={toggleDetailsView} 
+                className="text-xs text-blue-600 mt-1 font-medium hover:underline"
+              >
+                {showFullDetails ? 'Show less' : 'Read more'}
+              </button>
+            )}
+          </div>
           
           {/* Contact Details - Improved display */}
-          <div className="mb-2">
+          <div className="mb-3">
             <p className="text-xs font-medium text-gray-900">Contact Details</p>
             {authorEmail && (
               <p className="text-xs text-gray-700">Email: {authorEmail}</p>
@@ -168,7 +218,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange
         
         {/* Mark as Claimed Toggle - only for owner */}
         {isOwner && (
-          <div className="flex items-center justify-between mb-2 bg-gray-50 p-1.5 rounded">
+          <div className="flex items-center justify-between mb-3 bg-gray-50 p-1.5 rounded">
             <span className="text-xs font-medium text-gray-700">Mark as Claimed</span>
             <button
               onClick={handleStatusToggle}
@@ -189,17 +239,36 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange
         {/* Comments Button */}
         <button
           onClick={() => setShowComments(true)}
-          className="w-full flex items-center justify-center px-3 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50"
+          className="w-full flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50"
         >
           <MessageCircle className="h-3 w-3 mr-1" />
           Comments
         </button>
       </div>
       
+      {/* Modals */}
       {showComments && (
         <CommentsModal
           postId={post.id}
           onClose={() => setShowComments(false)}
+        />
+      )}
+      
+      {/* Post Image Modal */}
+      {showImageModal && post.imageUrl && (
+        <ImageModal 
+          imageUrl={post.imageUrl}
+          altText={post.title}
+          onClose={() => setShowImageModal(false)}
+        />
+      )}
+      
+      {/* Profile Image Modal */}
+      {showProfileImageModal && profileImageUrl && (
+        <ImageModal 
+          imageUrl={profileImageUrl}
+          altText={authorName}
+          onClose={() => setShowProfileImageModal(false)}
         />
       )}
     </div>

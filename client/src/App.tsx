@@ -1,20 +1,68 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import SignupPage from './pages/SignUp';
-import LoginPage from './pages/LoginPage';
-import Groups from './pages/HomePage';
+// src/App.tsx
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useRecoilValue } from 'recoil';
+import { userAtom } from './recoil/userAtom';
 
-const App: React.FC = () => {
-  return (   
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage/>} />
-        <Route path="/signup" element={<SignupPage/>} />
-        <Route path="/Groups" element={<Groups/>} />
-        <Route path="/docs" element={<div>Documentation (Coming Soon)</div>} />
-        <Route path="*" element={<div>Page Not Found</div>} />
-      </Routes>
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import PublicRoute from './components/PublicRoute';
+
+import Navbar from './components/Navbar';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import GroupsPage from './pages/GroupsPage';
+import GroupDetailPage from './pages/GroupDetailPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import AuthWrapper from './components/AuthWrapper';
+
+const App = () => {
+  const user = useRecoilValue(userAtom);
+
+  return (
+    <>
+    <BrowserRouter>
+      <AuthWrapper>
+        <Navbar />
+        <Routes>
+          <Route
+            path="/"
+            element={user ? <Navigate to="/groups" replace /> : <LandingPage />}
+          />
+          <Route path="/login" element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          } />
+          <Route path="/signup" element={
+            <PublicRoute>
+             <SignupPage />
+           </PublicRoute>
+          } />
+          <Route
+            path="/groups"
+            element={
+              <ProtectedRoute>
+                <GroupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:groupId"
+            element={
+              <ProtectedRoute>
+                <GroupDetailPage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthWrapper>
+    </BrowserRouter>
+    <ToastContainer
+  position="top-center"
+  autoClose={3000}
+/>
+    </>
   );
 };
 

@@ -162,7 +162,17 @@ const GroupDetailPage: React.FC = () => {
   });
 
   const handlePostCreated = (newPost: Post) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]);
+    // Add the current user's information as the author if it's missing
+    const enhancedPost = {
+      ...newPost,
+      author: newPost.author || {
+        id: user?.user?.id || '',
+        name: user?.user?.name || '',
+        email: user?.user?.email || '',
+        profileImageUrl: user?.user?.profileImageUrl
+      }
+    };
+    setPosts(prevPosts => [enhancedPost, ...prevPosts]);
   };
 
   const handlePostStatusChange = (postId: string, newStatus: 'ACTIVE' | 'CLAIMED') => {
@@ -257,7 +267,7 @@ const GroupDetailPage: React.FC = () => {
                 <p className="text-gray-600">No posts found in this category.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredPosts.map(post => (
                 <PostCard 
                   key={post.id} 

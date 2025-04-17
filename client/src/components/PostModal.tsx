@@ -79,8 +79,19 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
           Authorization: `Bearer ${user.token}`,
         },
       });
+
+      // Make sure we have complete post data with author information
+      const newPost = {
+        ...postRes.data.post,
+        author: postRes.data.post.author || {
+          id: user.user?.id,
+          name: user.user?.name,
+          email: user.user?.email,
+          profileImageUrl: user.user?.profileImageUrl
+        }
+      };
       
-      onPostCreated(postRes.data.post);
+      onPostCreated(newPost);
       onClose();
     } catch (err) {
       console.error('Error creating post:', err);

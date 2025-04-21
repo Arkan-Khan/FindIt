@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { userAtom, UserState } from '../recoil/userAtom';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react'; 
 
 const LoginPage = () => {
@@ -95,15 +95,6 @@ const LoginPage = () => {
                 disabled={loading}
                 className="py-3 text-gray-900 placeholder-gray-400 focus:ring-black focus:border-black block w-full pl-10 border-gray-300 rounded-md"
               />
-            </div>
-          </div>
-  
-          <div className="flex items-center justify-between">
-            
-            <div className="text-sm">
-              <a href="#" className="font-medium text-black hover:text-gray-800">
-                Forgot your password?
-              </a>
             </div>
           </div>
   

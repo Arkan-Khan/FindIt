@@ -1,14 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import { requestNotificationPermission, onMessageListener } from '../firebase/firebase';
 
 const NotificationHandler = () => {
   const user = useRecoilValue(userAtom);
-  const [notification, setNotification] = useState<any>(null);
   const navigate = useNavigate();
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -22,7 +20,7 @@ const NotificationHandler = () => {
         if (fcmToken) {
           // Save the token to the backend
           await axios.post(
-            `${backendUrl}notifications/tokens`,
+            `${backendUrl}/notifications/tokens`,
             { token: fcmToken },
             {
               headers: {
@@ -44,27 +42,22 @@ const NotificationHandler = () => {
   useEffect(() => {
     const unsubscribe = onMessageListener()
       .then((payload: any) => {
-        setNotification({
-          title: payload.notification?.title,
-          body: payload.notification?.body,
-          data: payload.data
-        });
-        
-        // Show toast notification
-        toast.info(
-          <div onClick={() => handleNotificationClick(payload.data)}>
-            <strong>{payload.notification?.title}</strong>
-            <p>{payload.notification?.body}</p>
-          </div>,
-          {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true
-          }
-        );
+        // Create and show browser notification
+        if (Notification.permission === 'granted') {
+          const title = payload.notification?.title || 'New Notification';
+          const options = {
+            body: payload.notification?.body,
+            icon: '/react.svg', // Path to your icon
+            data: payload.data,
+            onClick: () => handleNotificationClick(payload.data)
+          };
+          
+          // Show the browser notification
+          const notification = new Notification(title, options);
+          
+          // Add click event listener to the notification
+          notification.onclick = () => handleNotificationClick(payload.data);
+        }
       })
       .catch(err => console.log('Failed to receive notification: ', err));
 
@@ -77,10 +70,13 @@ const NotificationHandler = () => {
   const handleNotificationClick = (data: any) => {
     if (data?.groupId && data?.type === 'NEW_POST') {
       navigate(`/groups/${data.groupId}`);
+      
+      // Focus on the window if it's not in focus
+      if (window.focus) window.focus();
     }
   };
 
-  return null; // This component doesn't render anything
+  return null;
 };
 
 export default NotificationHandler;

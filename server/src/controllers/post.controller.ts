@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import { sendNotificationToGroup } from "../utils/notifications";
 
 const prisma = new PrismaClient();
 
@@ -58,7 +59,40 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
                 groupId: validatedData.groupId,
                 authorId: userId,
             },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,       // Include email
+                        phone: true,       // Include phone
+                        profileImageUrl: true  // Include profile image
+                    },
+                },
+                group: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
         });
+
+        // Send notification to all group members
+        try {
+            await sendNotificationToGroup(validatedData.groupId, {
+                title: `New ${post.postType.toLowerCase()} item in ${post.group.name}`,
+                body: `${post.author.name} posted: ${post.title}`,
+                data: {
+                    postId: post.id,
+                    groupId: post.groupId,
+                    type: 'NEW_POST'
+                }
+            });
+        } catch (notifError) {
+            console.error('Failed to send notifications:', notifError);
+            // Continue with the function even if notifications fail
+        }
 
         return res.status(201).json({ message: "Post created successfully!", post });
     } catch (error) {

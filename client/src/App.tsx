@@ -2,7 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from './recoil/userAtom';
-
+import NotificationHandler from './components/NotificationHandler';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PublicRoute from './components/PublicRoute';
@@ -23,6 +23,7 @@ const App = () => {
     <>
     <BrowserRouter>
       <AuthWrapper>
+      {user && <NotificationHandler />}
         <Navbar />
         <Routes>
           <Route

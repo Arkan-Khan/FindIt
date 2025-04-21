@@ -1,13 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ProfileModal from './ProfileModal';
 import UserDropdown from './UserDropdown';
 import ImageModal from './ImageModal';
 import { UserState } from '../types/user';
 import GitHubStars from '../utils/GitHubStars';
-import { Search, Menu, X } from 'lucide-react';
+import { Search, Menu, X, ChevronDown } from 'lucide-react';
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -17,13 +17,46 @@ const Navbar = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const dropdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogout = () => {
     setUser(null);
     navigate('/');
   };
 
-  const toggleDropdown = () => setShowDropdown(prev => !prev);
+  const toggleDropdown = () => {
+    setShowDropdown(prev => {
+      // If we're opening the dropdown, set a timer to close it
+      if (!prev) {
+        // Clear any existing timer
+        if (dropdownTimerRef.current) {
+          clearTimeout(dropdownTimerRef.current);
+        }
+        
+        // Set a new timer to close the dropdown after 5 seconds
+        dropdownTimerRef.current = setTimeout(() => {
+          setShowDropdown(false);
+        }, 1000);
+      } else {
+        // If we're closing it, clear the timer
+        if (dropdownTimerRef.current) {
+          clearTimeout(dropdownTimerRef.current);
+          dropdownTimerRef.current = null;
+        }
+      }
+      return !prev;
+    });
+  };
+
+  // Clean up the timer when component unmounts
+  useEffect(() => {
+    return () => {
+      if (dropdownTimerRef.current) {
+        clearTimeout(dropdownTimerRef.current);
+      }
+    };
+  }, []);
+
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const openProfileModal = () => setShowProfileModal(true);
   const closeProfileModal = () => setShowProfileModal(false);
@@ -74,24 +107,23 @@ const Navbar = () => {
               )}
 
               {user && (
-                <div className="relative">
+                <div className="relative flex items-center">
                   <div
                     className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer border-2 border-white"
-                    onClick={toggleDropdown}
+                    onClick={openImageModal}
                   >
                     <img
                       src={user.user.profileImageUrl || '/assets/profilePic.jpg'}
                       alt="User profile"
                       className="w-full h-full object-cover"
-                      onClick={openImageModal}
                     />
                   </div>
-                  {showDropdown && (
-                    <UserDropdown
-                      onProfileClick={openProfileModal}
-                      onLogoutClick={handleLogout}
-                    />
-                  )}
+                  <button 
+                    onClick={toggleDropdown}
+                    className="ml-2 text-white focus:outline-none p-1 rounded-full hover:bg-gray-800"
+                  >
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
                 </div>
               )}
             </div>
@@ -100,24 +132,23 @@ const Navbar = () => {
             <div className="flex md:hidden items-center space-x-4">
               <GitHubStars repoUrl="https://github.com/Arkan-Khan/FindIt" />
               {user ? (
-                <div className="relative">
+                <div className="relative flex items-center">
                   <div
                     className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer border-2 border-white"
-                    onClick={toggleDropdown}
+                    onClick={openImageModal}
                   >
                     <img
                       src={user.user.profileImageUrl || '/assets/profilePic.jpg'}
                       alt="User profile"
                       className="w-full h-full object-cover"
-                      onClick={openImageModal}
                     />
                   </div>
-                  {showDropdown && (
-                    <UserDropdown
-                      onProfileClick={openProfileModal}
-                      onLogoutClick={handleLogout}
-                    />
-                  )}
+                  <button 
+                    onClick={toggleDropdown}
+                    className="ml-2 text-white focus:outline-none p-1 rounded-full hover:bg-gray-800"
+                  >
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
                 </div>
               ) : (
                 <button onClick={toggleMobileMenu} className="text-white focus:outline-none">
@@ -152,6 +183,22 @@ const Navbar = () => {
           </div>
         )}
       </nav>
+
+      {/* User Dropdown positioned below navbar */}
+      {showDropdown && user && (
+        <div className="fixed top-[60px] right-4 md:right-8 z-50">
+          <UserDropdown
+            onProfileClick={() => {
+              openProfileModal();
+              setShowDropdown(false);
+            }}
+            onLogoutClick={() => {
+              handleLogout();
+              setShowDropdown(false);
+            }}
+          />
+        </div>
+      )}
 
       {showProfileModal && user && (
         <ProfileModal

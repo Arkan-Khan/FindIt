@@ -3,42 +3,13 @@ import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import GroupNavbar from '../components/GroupNavbar';
 import PostCard from '../components/PostCard';
 import FloatingAddButton from '../components/FloatingAddButton';
 import MembersTable from '../components/MembersTable';
 import PostModal from '../components/PostModal';
-import { GroupDetails } from './GroupsPage'; // Import the interface
-
-// Types
-interface Post {
-  id: string;
-  title: string;
-  details: string;
-  imageUrl?: string;
-  postType: 'LOST' | 'FOUND';
-  status: 'ACTIVE' | 'CLAIMED';
-  createdAt: string;
-  author: {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    profileImageUrl?: string;
-  };
-}
-
-interface Member {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-}
-
-interface LocationState {
-  groupDetails: GroupDetails;
-}
+import { Post, GroupDetails, Member, LocationState } from '../types';
 
 const GroupDetailPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -47,7 +18,8 @@ const GroupDetailPage: React.FC = () => {
   
   const user = useRecoilValue(userAtom);
   const [activeTab, setActiveTab] = useState<'POSTS' | 'MEMBERS'>('POSTS');
-  const [filter, setFilter] = useState<'ALL' | 'LOST' | 'FOUND' | 'CLAIMED'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'LOST' | 'FOUND' | 'CLAIMED' | 'MY_POSTS'>('ALL');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [groupDetails, setGroupDetails] = useState<GroupDetails | null>(
@@ -64,8 +36,9 @@ const GroupDetailPage: React.FC = () => {
     const fetchGroupDetails = async () => {
       if (!user?.token || !groupId) return;
       
-      // Only fetch if we don't already have details
+      // Skip fetching if we already have the details
       if (groupDetails && groupDetails.id === groupId) {
+        setLoading(false);
         return;
       }
 
@@ -145,19 +118,27 @@ const GroupDetailPage: React.FC = () => {
       }
     };
   
-    // Important: Only fetch members when the tab changes to 'MEMBERS'
     if (activeTab === 'MEMBERS') {
       fetchMembers();
     }
-    
-    // Do NOT include members or membersLoading in the dependency array
   }, [groupId, user?.token, backendUrl, activeTab]);
 
   const filteredPosts = posts.filter(post => {
+    // First apply search filter
+    const matchesSearch = !searchTerm || 
+      post.title.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    // Then apply category filter
     if (filter === 'ALL') return true;
     if (filter === 'LOST') return post.postType === 'LOST' && post.status === 'ACTIVE';
     if (filter === 'FOUND') return post.postType === 'FOUND' && post.status === 'ACTIVE';
     if (filter === 'CLAIMED') return post.status === 'CLAIMED';
+    if (filter === 'MY_POSTS') {
+      const authorId = post.author?.id || post.user?.id || post.authorId;
+      return authorId === user?.user?.id;
+    }
     return true;
   });
 
@@ -184,12 +165,14 @@ const GroupDetailPage: React.FC = () => {
   };
 
   const handleTabChange = (tab: 'POSTS' | 'MEMBERS') => {
-    // Reset loading state when switching tabs
     if (tab === 'MEMBERS' && activeTab !== 'MEMBERS') {
-      // Only reset if actually changing to Members tab
       setMembersLoading(true);
     }
     setActiveTab(tab);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
   if (loading && !groupDetails) {
@@ -202,7 +185,7 @@ const GroupDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <div className="min-h-screen bg-gray-50">
       {groupDetails && (
         <GroupNavbar 
           group={groupDetails}
@@ -211,50 +194,79 @@ const GroupDetailPage: React.FC = () => {
         />
       )}
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 mt-16">
         {activeTab === 'POSTS' && (
           <>
-            <div className="mb-6 flex flex-wrap gap-2">
-              <button
-                onClick={() => setFilter('ALL')}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
-                  filter === 'ALL' 
-                    ? 'bg-black text-white' 
-                    : 'bg-white text-gray-700 border border-gray-300'
-                }`}
-              >
-                All Posts
-              </button>
-              <button
-                onClick={() => setFilter('LOST')}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
-                  filter === 'LOST' 
-                    ? 'bg-red-500 text-white' 
-                    : 'bg-white text-gray-700 border border-gray-300'
-                }`}
-              >
-                Lost Items
-              </button>
-              <button
-                onClick={() => setFilter('FOUND')}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
-                  filter === 'FOUND' 
-                    ? 'bg-green-500 text-white' 
-                    : 'bg-white text-gray-700 border border-gray-300'
-                }`}
-              >
-                Found Items
-              </button>
-              <button
-                onClick={() => setFilter('CLAIMED')}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
-                  filter === 'CLAIMED' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white text-gray-700 border border-gray-300'
-                }`}
-              >
-                Claimed Items
-              </button>
+            {/* Search Bar */}
+            <div className="mb-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search for posts by title..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+              </div>
+            </div>
+            
+            {/* Filter Tabs */}
+            <div className="mb-6 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 pb-2 min-w-max">
+                <button
+                  onClick={() => setFilter('ALL')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                    filter === 'ALL' 
+                      ? 'bg-black text-white' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  All Posts
+                </button>
+                <button
+                  onClick={() => setFilter('MY_POSTS')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                    filter === 'MY_POSTS' 
+                      ? 'bg-purple-500 text-white' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  My Posts
+                </button>
+                <button
+                  onClick={() => setFilter('LOST')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                    filter === 'LOST' 
+                      ? 'bg-red-500 text-white' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  Lost Items
+                </button>
+                <button
+                  onClick={() => setFilter('FOUND')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                    filter === 'FOUND' 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  Found Items
+                </button>
+                <button
+                  onClick={() => setFilter('CLAIMED')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                    filter === 'CLAIMED' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  Claimed Items
+                </button>
+              </div>
             </div>
             
             {loading ? (
@@ -264,19 +276,21 @@ const GroupDetailPage: React.FC = () => {
               </div>
             ) : filteredPosts.length === 0 ? (
               <div className="text-center py-16 bg-gray-100 rounded-lg">
-                <p className="text-gray-600">No posts found in this category.</p>
+                <p className="text-gray-600">
+                  {searchTerm ? `No posts found matching "${searchTerm}"` : "No posts found in this category."}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredPosts.map(post => (
-                <PostCard 
-                  key={post.id} 
-                  post={post} 
-                  currentUserId={user?.user?.id || ''}
-                  onStatusChange={handlePostStatusChange}
-                />
-              ))}
-            </div>
+                {filteredPosts.map(post => (
+                  <PostCard 
+                    key={post.id} 
+                    post={post} 
+                    currentUserId={user?.user?.id || ''}
+                    onStatusChange={handlePostStatusChange}
+                  />
+                ))}
+              </div>
             )}
           </>
         )}

@@ -30,6 +30,8 @@ const CreateGroupModal: React.FC<Props> = ({ onClose, onGroupCreated }) => {
     }
   };
 
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   const handleCreateGroup = async () => {
     if (!groupName || !imageFile || !user?.token) return;
     setUploading(true);
@@ -50,7 +52,7 @@ const CreateGroupModal: React.FC<Props> = ({ onClose, onGroupCreated }) => {
       const imageUrl = cloudinaryRes.data.secure_url;
 
       const backendRes = await axios.post(
-        'http://localhost:5000/groups/create',
+        `${backendUrl}groups/create`,
         {
           name: groupName,
           groupImageUrl: imageUrl,

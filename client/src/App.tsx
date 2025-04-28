@@ -6,8 +6,6 @@ import NotificationHandler from './components/NotificationHandler';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PublicRoute from './components/PublicRoute';
-
-import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -24,7 +22,6 @@ const App = () => {
     <BrowserRouter>
       <AuthWrapper>
       {user && <NotificationHandler />}
-        <Navbar />
         <Routes>
           <Route
             path="/"

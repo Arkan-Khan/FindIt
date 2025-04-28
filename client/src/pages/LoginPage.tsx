@@ -3,6 +3,7 @@ import { useSetRecoilState } from 'recoil';
 import { userAtom, UserState } from '../recoil/userAtom';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react'; 
+import Navbar from '../components/Navbar';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -10,12 +11,13 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const setUser = useSetRecoilState(userAtom);
   const navigate = useNavigate();
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/auth/login', {
+      const res = await fetch(`${backendUrl}auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,6 +46,8 @@ const LoginPage = () => {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen pt-16 bg-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-6 sm:p-8 border border-gray-200">
         <div className="flex justify-center">
@@ -118,6 +122,7 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

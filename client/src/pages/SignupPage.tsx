@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { userAtom, UserState } from '../recoil/userAtom';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus } from 'lucide-react'; // You can change this icon if needed
+import { UserPlus } from 'lucide-react';
+import Navbar from '../components/Navbar';
+
 
 const SignupPage = () => {
   const [name, setName] = useState('');
@@ -14,6 +16,7 @@ const SignupPage = () => {
 
   const setUser = useSetRecoilState(userAtom);
   const navigate = useNavigate();
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +24,7 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/auth/signup', {
+      const res = await fetch(`${backendUrl}auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,6 +58,8 @@ const SignupPage = () => {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen pt-20 bg-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-4 sm:p-6 border border-gray-200">
         <div className="flex justify-center">
@@ -149,6 +154,7 @@ const SignupPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
   
 };

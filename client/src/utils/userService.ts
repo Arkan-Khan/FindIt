@@ -4,7 +4,8 @@ export const updateUserProfile = async (
   token: string, 
   updateData: { phone?: string; profileImageUrl?: string }
 ): Promise<User> => {
-  const response = await fetch('http://localhost:5000/auth/updateProfile', {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const response = await fetch(`${backendUrl}/auth/updateProfile`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

@@ -20,7 +20,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Initialize temporary values when modal opens
   useEffect(() => {
     if (user) {
       const userData = getUserData(user);

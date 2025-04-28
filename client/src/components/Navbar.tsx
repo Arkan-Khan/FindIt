@@ -33,10 +33,9 @@ const Navbar = () => {
           clearTimeout(dropdownTimerRef.current);
         }
         
-        // Set a new timer to close the dropdown after 5 seconds
         dropdownTimerRef.current = setTimeout(() => {
           setShowDropdown(false);
-        }, 1000);
+        }, 3000);
       } else {
         // If we're closing it, clear the timer
         if (dropdownTimerRef.current) {

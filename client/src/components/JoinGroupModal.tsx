@@ -12,6 +12,7 @@ const JoinGroupModal: React.FC<Props> = ({ onClose, onGroupJoined }) => {
   const user = useRecoilValue(userAtom);
   const [teamCode, setTeamCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleJoinGroup = async () => {
     if (!teamCode || !user?.token) return;
@@ -19,7 +20,7 @@ const JoinGroupModal: React.FC<Props> = ({ onClose, onGroupJoined }) => {
     
     try {
       const res = await axios.post(
-        'http://localhost:5000/groups/join',
+        `${backendUrl}groups/join`,
         { code: teamCode },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );

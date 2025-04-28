@@ -16,9 +16,6 @@ const MembersTable: React.FC<MembersTableProps> = ({ members }) => {
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:px-6">
         <h3 className="text-lg font-medium leading-6 text-gray-900">Group Members</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          A list of all members in this group.
-        </p>
       </div>
       <div className="border-t border-gray-200 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">

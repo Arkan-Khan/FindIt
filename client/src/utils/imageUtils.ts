@@ -1,6 +1,5 @@
 export const optimizeImage = (file: File): Promise<File> => {
     return new Promise((resolve) => {
-      // If file is already small enough, just return it
       if (file.size <= 500 * 1024) { // 500KB
         resolve(file);
         return;

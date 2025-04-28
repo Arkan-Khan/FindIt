@@ -7,6 +7,7 @@ import { UserState } from '../types/user';
 import CreateGroupModal from '../components/CreateGroupModal';
 import JoinGroupModal from '../components/JoinGroupModal';
 import { Loader2 } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 interface Group {
   id: string;
@@ -107,6 +108,8 @@ const GroupsPage: React.FC = () => {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen w-full bg-gray-50 pt-20 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 border-b border-gray-300 pb-4">
@@ -187,6 +190,7 @@ const GroupsPage: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

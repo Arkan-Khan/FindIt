@@ -1,4 +1,3 @@
-// src/components/ProtectedRoute.tsx
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
@@ -12,7 +11,8 @@ const ProtectedRoute = ({ children }: Props) => {
   const user = useRecoilValue(userAtom);
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    // Redirect to access denied page instead of home
+    return <Navigate to="/access-denied" replace />;
   }
 
   return <>{children}</>;

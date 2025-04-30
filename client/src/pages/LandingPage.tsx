@@ -16,14 +16,15 @@ const LandingPage: React.FC = () => {
                 <p className="text-xl mb-8 text-gray-600">
                     Connect with your community to recover lost items and help others find theirs.
                 </p>
-                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center"> {/* Centered buttons */}
-                    <Link to="/signup" className="bg-black text-white hover:bg-gray-800 px-6 py-3 rounded-lg font-medium text-center transition-colors">
-                        Get Started
-                    </Link>
-                    <Link to="/docs" className="border border-black text-black hover:bg-gray-100 px-6 py-3 rounded-lg font-medium text-center transition-colors">
-                        Learn More
-                    </Link>
-                </div>
+                <div className="flex flex-col sm:flex-row sm:space-x-4 justify-center items-center space-y-4 sm:space-y-0">
+                <Link
+                  to="/signup"
+                  className="bg-black text-white hover:bg-gray-800 px-6 py-3 rounded-lg font-medium text-center transition-colors w-fit mx-auto"
+                >
+                  Get Started
+                </Link>
+              </div>
+
             </div>
         </div>
       </section>
@@ -63,7 +64,7 @@ const LandingPage: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold mb-3 text-gray-800">Connect & Claim</h3>
-              <p className="text-gray-600">Securely connect with finders and verify item ownership to reclaim your belongings.</p>
+              <p className="text-gray-600">Connect with finders and verify item ownership to reclaim your belongings.</p>
             </div>
           </div>
         </div>
@@ -74,7 +75,7 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">Making a Difference</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-xl shadow-sm p-6 text-center">
               <h3 className="text-black text-4xl font-bold mb-2">1,200+</h3>
               <p className="text-gray-600">Items Returned</p>
@@ -89,46 +90,6 @@ const LandingPage: React.FC = () => {
               <h3 className="text-black text-4xl font-bold mb-2">5,000+</h3>
               <p className="text-gray-600">Registered Users</p>
             </div>
-            
-            <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-              <h3 className="text-black text-4xl font-bold mb-2">85%</h3>
-              <p className="text-gray-600">Success Rate</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-10 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">What Our Users Say</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-gray-800 font-bold">JD</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800">John Doe</h4>
-                  <p className="text-gray-500 text-sm">University Student</p>
-                </div>
-              </div>
-              <p className="text-gray-600 italic">"FindIt helped me recover my laptop that I left in the library. Within hours, someone from my university group had found it and reached out to me. The platform made the whole process simple and secure."</p>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-gray-800 font-bold">SA</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800">Sarah Adams</h4>
-                  <p className="text-gray-500 text-sm">Office Administrator</p>
-                </div>
-              </div>
-              <p className="text-gray-600 italic">"As an office admin, I used to struggle with organizing lost items. FindIt has streamlined our entire process. Now employees can easily check if their items have been found without having to ask multiple people."</p>
-            </div>
           </div>
         </div>
       </section>
@@ -138,11 +99,11 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Start Finding?</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-300">Join FindIt today and connect with your community to help recover lost items and return found belongings.</p>
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link to="/signup" className="bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-lg font-medium transition-colors">
+          <div className="flex flex-row justify-center space-x-4">
+            <Link to="/signup" className="bg-white text-black hover:bg-gray-200 px-4 py-3 rounded-lg font-medium transition-colors">
               Create an Account
             </Link>
-            <Link to="/login" className="border border-white text-white hover:bg-white hover:bg-opacity-10 px-8 py-4 rounded-lg font-medium transition-colors">
+            <Link to="/login" className="border border-white text-white hover:bg-white hover:bg-opacity-10 px-6 py-3 rounded-lg font-medium transition-colors">
               Sign In
             </Link>
           </div>

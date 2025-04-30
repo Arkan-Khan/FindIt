@@ -20,19 +20,24 @@ const Navbar = () => {
   const dropdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogout = () => {
+    setShowDropdown(false);
+    setShowProfileModal(false);
+    setShowImageModal(false);
+ 
     setUser(null);
-    navigate('/');
+    
+    setTimeout(() => {
+      navigate('/', { replace: true });
+    }, 10);
   };
 
   const toggleDropdown = () => {
     setShowDropdown(prev => {
-      // If we're opening the dropdown, set a timer to close it
       if (!prev) {
-        // Clear any existing timer
         if (dropdownTimerRef.current) {
           clearTimeout(dropdownTimerRef.current);
         }
-        
+ 
         dropdownTimerRef.current = setTimeout(() => {
           setShowDropdown(false);
         }, 3000);
@@ -47,7 +52,6 @@ const Navbar = () => {
     });
   };
 
-  // Clean up the timer when component unmounts
   useEffect(() => {
     return () => {
       if (dropdownTimerRef.current) {
@@ -61,9 +65,8 @@ const Navbar = () => {
   const closeProfileModal = () => setShowProfileModal(false);
   
   const openImageModal = (e: React.MouseEvent) => {
-    // Stop propagation to prevent the dropdown from toggling
     e.stopPropagation();
-    if (user?.user.profileImageUrl) {
+    if (user?.user?.profileImageUrl) {
       setShowImageModal(true);
     }
   };
@@ -74,63 +77,43 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-black py-3 shadow-md fixed left-0 right-0 top-0 z-50">
+      <nav className="bg-black py-3 min-h-[64px] shadow-md fixed left-0 right-0 top-0 z-50">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
               <Search className="w-6 h-6 text-white" />
               <span className="text-white font-bold text-xl">FindIt</span>
             </Link>
 
-            {/* Desktop */}
-            <div className="hidden md:flex items-center space-x-8">
-              <GitHubStars repoUrl="https://github.com/Arkan-Khan/FindIt" />
+            {/* Main navigation items */}
+            <div className="flex items-center space-x-4 md:space-x-8">
+              <div className="h-8 flex items-center">
+                <GitHubStars repoUrl="https://github.com/Arkan-Khan/FindIt" />
+              </div>
 
-              {!user && pathname !== '/login' && (
-                <Link
-                  to="/login"
-                  className="bg-white text-black px-4 py-1.5 rounded-[10px] font-medium shadow hover:bg-gray-200 transition-all"
-                >
-                  Login
-                </Link>
+              {!user && (
+                <>
+                  {pathname !== '/login' && (
+                    <Link
+                      to="/login"
+                      className="hidden md:block bg-white text-black px-4 py-1.5 rounded-[10px] font-medium shadow hover:bg-gray-200 transition-all"
+                    >
+                      Login
+                    </Link>
+                  )}
+
+                  {pathname !== '/signup' && (
+                    <Link
+                      to="/signup"
+                      className="hidden md:block bg-white text-black px-4 py-1.5 rounded-[10px] font-medium shadow hover:bg-gray-200 transition-all"
+                    >
+                      Signup
+                    </Link>
+                  )}
+                </>
               )}
 
-              {!user && pathname !== '/signup' && (
-                <Link
-                  to="/signup"
-                  className="bg-white text-black px-4 py-1.5 rounded-[10px] font-medium shadow hover:bg-gray-200 transition-all"
-                >
-                  Signup
-                </Link>
-              )}
-
-              {user && (
-                <div className="relative flex items-center">
-                  <div
-                    className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer border-2 border-white"
-                    onClick={openImageModal}
-                  >
-                    <img
-                      src={user.user.profileImageUrl || '/assets/profilePic.jpg'}
-                      alt="User profile"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <button 
-                    onClick={toggleDropdown}
-                    className="ml-2 text-white focus:outline-none p-1 rounded-full hover:bg-gray-800"
-                  >
-                    <ChevronDown className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile */}
-            <div className="flex md:hidden items-center space-x-4">
-              <GitHubStars repoUrl="https://github.com/Arkan-Khan/FindIt" />
-              {user ? (
+              {user && user.user ? (
                 <div className="relative flex items-center">
                   <div
                     className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer border-2 border-white"
@@ -150,7 +133,10 @@ const Navbar = () => {
                   </button>
                 </div>
               ) : (
-                <button onClick={toggleMobileMenu} className="text-white focus:outline-none">
+                <button 
+                  onClick={toggleMobileMenu} 
+                  className="md:hidden text-white focus:outline-none"
+                >
                   {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
               )}
@@ -158,14 +144,14 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Slide-down Menu (minimal links) */}
+        {/* Mobile menu */}
         {!user && mobileMenuOpen && (
-          <div className="md:hidden bg-black px-4 pt-4 space-y-2">
+          <div className="md:hidden bg-black px-4 pt-4 pb-2 space-y-2">
             {pathname !== '/login' && (
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-white text-base hover:underline"
+                className="block text-white text-base hover:underline py-2"
               >
                 Login
               </Link>
@@ -174,7 +160,7 @@ const Navbar = () => {
               <Link
                 to="/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-white text-base hover:underline"
+                className="block text-white text-base hover:underline py-2"
               >
                 Signup
               </Link>
@@ -183,23 +169,19 @@ const Navbar = () => {
         )}
       </nav>
 
-      {/* User Dropdown positioned below navbar */}
-      {showDropdown && user && (
-        <div className="fixed top-[60px] right-4 md:right-8 z-50">
+      {showDropdown && user && user.user && (
+        <div className="fixed top-[64px] right-4 md:right-8 z-50">
           <UserDropdown
             onProfileClick={() => {
               openProfileModal();
               setShowDropdown(false);
             }}
-            onLogoutClick={() => {
-              handleLogout();
-              setShowDropdown(false);
-            }}
+            onLogoutClick={handleLogout}
           />
         </div>
       )}
 
-      {showProfileModal && user && (
+      {showProfileModal && user && user.user && (
         <ProfileModal
           user={user}
           setUser={setUser}
@@ -207,8 +189,7 @@ const Navbar = () => {
         />
       )}
       
-      {/* Image Modal */}
-      {showImageModal && user?.user.profileImageUrl && (
+      {showImageModal && user && user.user && user.user.profileImageUrl && (
         <ImageModal 
           imageUrl={user.user.profileImageUrl} 
           altText="User profile" 

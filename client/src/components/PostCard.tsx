@@ -25,6 +25,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange
   const authorPhone = post.author?.phone || post.user?.phone;
   
   const isOwner = authorId === currentUserId;
+  const isClaimed = localStatus === 'CLAIMED';
   
   // Format date function
   const formatDate = (dateString: string) => {
@@ -221,27 +222,46 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUserId, onStatusChange
                   />
                 </button>
               </div>
-              <button
-                onClick={() => setShowComments(true)}
-                className="bg-black text-white font-bold text-xs rounded-full px-4 py-1 border border-black hover:bg-gray-800 transition-colors duration-200"
-              >
-                Comments
-              </button>
+              {!isClaimed && (
+                <button
+                  onClick={() => setShowComments(true)}
+                  className="bg-black text-white font-bold text-xs rounded-full px-4 py-2 border border-black hover:bg-gray-800 transition-colors duration-200"
+                >
+                  Comments
+                </button>
+              )}
+              {isClaimed && (
+                <button
+                  disabled
+                  className="bg-gray-300 text-gray-500 font-bold text-xs rounded-full px-4 py-2 border border-gray-300 cursor-not-allowed"
+                >
+                  Comments
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex justify-center mt-2">
-              <button
-                onClick={() => setShowComments(true)}
-                className="bg-black text-white font-bold text-xs rounded-full px-4 py-1 border border-black hover:bg-gray-800 transition-colors duration-200"
-              >
-                Comments
-              </button>
+              {!isClaimed ? (
+                <button
+                  onClick={() => setShowComments(true)}
+                  className="bg-black text-white font-bold text-xs rounded-full px-4 py-2 border border-black hover:bg-gray-800 transition-colors duration-200"
+                >
+                  Comments
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="bg-gray-300 text-gray-500 font-bold text-xs rounded-full px-4 py-2 border border-gray-300 cursor-not-allowed"
+                >
+                  Item Claimed
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
       
-      {showComments && (
+      {showComments && !isClaimed && (
         <CommentsModal
           postId={post.id}
           onClose={() => setShowComments(false)}

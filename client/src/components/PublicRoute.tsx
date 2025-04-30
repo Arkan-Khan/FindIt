@@ -24,16 +24,12 @@ const PublicRoute = ({ children }: Props) => {
       return () => clearTimeout(timer);
     }
   }, [user]);
-
   if (shouldRedirect) {
     return <Navigate to="/groups" replace />;
   }
-
   if (user) {
     return null;
   }
-
   return children;
 };
-
 export default PublicRoute;

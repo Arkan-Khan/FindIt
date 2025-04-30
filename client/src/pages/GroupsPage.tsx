@@ -4,46 +4,11 @@ import { useRecoilValue } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { userAtom } from '../recoil/userAtom';
 import { UserState } from '../types/user';
+import { Group, GroupDetails } from '../types/group';
 import CreateGroupModal from '../components/CreateGroupModal';
 import JoinGroupModal from '../components/JoinGroupModal';
 import { Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
-
-interface Group {
-  id: string;
-  name: string;
-  code: string;
-  groupImageUrl: string | null;
-  creator?: { 
-    id: string;
-    name: string;
-    email: string;
-  };
-  members?: {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string;
-  }[];
-}
-
-export interface GroupDetails {
-  id: string;
-  name: string;
-  code: string;
-  groupImageUrl: string | null;
-  creator: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  members: {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string;
-  }[];
-}
 
 const GroupsPage: React.FC = () => {
   const user = useRecoilValue<UserState>(userAtom);
@@ -94,14 +59,16 @@ const GroupsPage: React.FC = () => {
   };
 
   const handleGroupClick = (group: Group) => {
-    // Ensure all required properties are present before navigating
     const groupDetails: GroupDetails = {
       id: group.id,
       name: group.name,
       code: group.code,
       groupImageUrl: group.groupImageUrl,
-      creator: group.creator || { id: '', name: 'Unknown', email: '' },
-      members: group.members || []
+      createdAt: group.createdAt,
+      memberCount: group.memberCount,
+      postCount: group.postCount,
+      creator: group.creator,
+      members: group.members
     };
     
     navigate(`/groups/${group.id}`, { state: { groupDetails } });
@@ -116,7 +83,7 @@ const GroupsPage: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Groups</h1>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        <div className="flex flex-row gap-3 mb-8">
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"

@@ -1,4 +1,3 @@
-// src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from './recoil/userAtom';
@@ -6,22 +5,22 @@ import NotificationHandler from './components/NotificationHandler';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PublicRoute from './components/PublicRoute';
+
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import GroupsPage from './pages/GroupsPage';
 import GroupDetailPage from './pages/GroupDetailPage';
+import AccessDeniedPage from './pages/AccessDeniedPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import AuthWrapper from './components/AuthWrapper';
 
 const App = () => {
   const user = useRecoilValue(userAtom);
 
   return (
     <>
-    <BrowserRouter>
-      <AuthWrapper>
-      {user && <NotificationHandler />}
+      <BrowserRouter>
+        {user && <NotificationHandler />}
         <Routes>
           <Route
             path="/"
@@ -34,8 +33,8 @@ const App = () => {
           } />
           <Route path="/signup" element={
             <PublicRoute>
-             <SignupPage />
-           </PublicRoute>
+              <SignupPage />
+            </PublicRoute>
           } />
           <Route
             path="/groups"
@@ -53,13 +52,16 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          {/* New Access Denied route */}
+          <Route path="/access-denied" element={<AccessDeniedPage />} />
+          {/* Catch-all route for undefined paths */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </AuthWrapper>
-    </BrowserRouter>
-    <ToastContainer
-  position="top-center"
-  autoClose={3000}
-/>
+      </BrowserRouter>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+      />
     </>
   );
 };

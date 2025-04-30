@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { userAtom, UserState } from '../recoil/userAtom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search } from 'lucide-react'; 
 import Navbar from '../components/Navbar';
 
@@ -113,12 +113,12 @@ const LoginPage = () => {
           </div>
         </form>
         <div className="text-center mt-3">
-          <p className="text-gray-600">
-            Don't have an account?{' '}
-            <a href="/signup" className="text-gray-900 font-medium hover:underline">
-              Register
-            </a>
-          </p>
+        <p className="text-gray-600">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-gray-900 font-medium hover:underline">
+            Register
+          </Link>
+        </p>
         </div>
       </div>
     </div>

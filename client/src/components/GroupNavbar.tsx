@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, ArrowLeft, MoreVertical, X } from 'lucide-react';
+import { Copy, Check, ArrowLeft, MoreVertical} from 'lucide-react';
 import ImageModal from './ImageModal';
 import { useNavigate } from 'react-router-dom';
 
@@ -128,7 +128,7 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
   
         {/* Mobile Menu */}
         {showMobileMenu && (
-          <div className="md:hidden bg-black border-t border-gray-700 py-2 px-4">
+          <div className="md:hidden bg-black border-t border-gray-700 py-2 px-4 mt-3">
             <div className="flex flex-col items-center space-y-2">
               {/* Posts and Members buttons in same row */}
               <div className="flex w-full">

@@ -52,9 +52,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          {/* New Access Denied route */}
           <Route path="/access-denied" element={<AccessDeniedPage />} />
-          {/* Catch-all route for undefined paths */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

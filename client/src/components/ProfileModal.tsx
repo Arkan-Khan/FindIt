@@ -18,6 +18,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [backendError, setBackendError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -26,15 +28,39 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
       setTempPhone(userData.phone || '');
       setTempProfileImage(userData.profileImageUrl || '');
       setHasChanges(false);
+      setPhoneError(null);
+      setBackendError(null);
     }
   }, [user]);
 
   const userData = getUserData(user);
   const profileImage = tempProfileImage || userData.profileImageUrl || '/assets/profilePic.jpg';
 
+  const validatePhone = (phone: string): boolean => {
+    if (!phone) return true; // Empty phone is allowed
+    
+    // Check if phone contains only digits and is exactly 10 digits
+    const phoneRegex = /^\d{10}$/;
+    return phoneRegex.test(phone);
+  };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTempPhone(e.target.value);
+    const newPhone = e.target.value;
+    // Only allow digits to be entered
+    const digitsOnly = newPhone.replace(/\D/g, '');
+    
+    setTempPhone(digitsOnly);
     setHasChanges(true);
+    
+    // Clear error if field is empty or valid
+    if (!digitsOnly || validatePhone(digitsOnly)) {
+      setPhoneError(null);
+    } else {
+      setPhoneError('Phone number must be exactly 10 digits');
+    }
+    
+    // Always clear backend error when user makes changes
+    setBackendError(null);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +70,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
     try {
       setIsUploading(true);
       setUploadProgress(5);
+      setBackendError(null);
       
       const optimizedFile = await optimizeImage(file);
       setUploadProgress(20);
@@ -93,9 +120,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
 
   const saveChanges = async () => {
     if (!user?.token) return;
+    
+    // Validate phone before submitting
+    if (tempPhone && !validatePhone(tempPhone)) {
+      setPhoneError('Phone number must be exactly 10 digits');
+      return;
+    }
 
     try {
       setIsLoading(true);
+      setBackendError(null);
       
       // Only include fields that have changed
       const updateData: { phone?: string; profileImageUrl?: string } = {};
@@ -122,11 +156,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
       });
       
       setHasChanges(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating profile:', err);
-      // Reset temp values on error
-      setTempPhone(userData.phone || '');
-      setTempProfileImage(userData.profileImageUrl || '');
+      // Display backend error message if available
+      setBackendError(err.message || 'Failed to update profile. Please try again.');
+      
+      // Don't reset temp values on error to allow the user to correct and try again
     } finally {
       setIsLoading(false);
     }
@@ -137,6 +172,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
     setTempProfileImage(userData.profileImageUrl || '');
     setHasChanges(false);
     setIsEditingPhone(false);
+    setPhoneError(null);
+    setBackendError(null);
   };
 
   return (
@@ -157,6 +194,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
             </svg>
           </button>
         </div>
+        
+        {backendError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
+            {backendError}
+          </div>
+        )}
         
         <div className="flex justify-center mb-6 relative">
           <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
@@ -211,31 +254,46 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
             <span className="text-gray-900">{userData.name}</span>
           </div>
           
-          <div className="flex items-center">
-            <span className="text-gray-600 font-medium w-20">Phone:</span>
-            {isEditingPhone ? (
-              <input
-                type="text"
-                value={tempPhone}
-                onChange={handlePhoneChange}
-                onBlur={() => setIsEditingPhone(false)}
-                className="border-b border-gray-300 focus:border-black outline-none px-2 py-1 flex-1"
-                autoFocus
-              />
-            ) : (
-              <div className="flex items-center flex-1">
-                <span className="text-gray-900">{tempPhone || 'N/A'}</span>
-                <button 
-                  className="ml-2 text-gray-500 hover:text-black focus:outline-none"
-                  onClick={() => setIsEditingPhone(true)}
-                  disabled={isLoading || isUploading}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                </button>
-              </div>
-            )}
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <span className="text-gray-600 font-medium w-20">Phone:</span>
+              {isEditingPhone ? (
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={tempPhone}
+                    onChange={handlePhoneChange}
+                    onBlur={() => {
+                      // When user leaves the field, validate one more time
+                      if (tempPhone && !validatePhone(tempPhone)) {
+                        setPhoneError('Phone number must be exactly 10 digits');
+                      }
+                      setIsEditingPhone(false);
+                    }}
+                    className={`border-b ${phoneError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none px-2 py-1 w-full`}
+                    placeholder="Enter 10 digit phone number"
+                    maxLength={10}
+                    autoFocus
+                  />
+                  {phoneError && (
+                    <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center flex-1">
+                  <span className="text-gray-900">{tempPhone || 'N/A'}</span>
+                  <button 
+                    className="ml-2 text-gray-500 hover:text-black focus:outline-none"
+                    onClick={() => setIsEditingPhone(true)}
+                    disabled={isLoading || isUploading}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -243,9 +301,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
           {hasChanges && (
             <>
               <button 
-                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-50 disabled:opacity-50"
+                className={`px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-50 ${(phoneError || isLoading || isUploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={saveChanges}
-                disabled={isLoading || isUploading}
+                disabled={!!phoneError || isLoading || isUploading}
               >
                 {isLoading ? (
                   <span className="flex items-center">

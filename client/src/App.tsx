@@ -5,6 +5,7 @@ import NotificationHandler from './components/NotificationHandler';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PublicRoute from './components/PublicRoute';
+import { useEffect } from 'react';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -16,6 +17,19 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   const user = useRecoilValue(userAtom);
+  
+  // Register service worker for notifications
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch(err => {
+          console.error('Service Worker registration failed:', err);
+        });
+    }
+  }, []);
 
   return (
     <>

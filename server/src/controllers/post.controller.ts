@@ -64,9 +64,9 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
                     select: {
                         id: true,
                         name: true,
-                        email: true,       // Include email
-                        phone: true,       // Include phone
-                        profileImageUrl: true  // Include profile image
+                        email: true,
+                        phone: true,
+                        profileImageUrl: true
                     },
                 },
                 group: {
@@ -78,7 +78,7 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
             },
         });
 
-        // Send notification to all group members
+        // Send notification to all group members except the post creator
         try {
             await sendNotificationToGroup(validatedData.groupId, {
                 title: `New ${post.postType.toLowerCase()} item in ${post.group.name}`,
@@ -88,7 +88,7 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
                     groupId: post.groupId,
                     type: 'NEW_POST'
                 }
-            });
+            }, userId); // Exclude the user who created the post
         } catch (notifError) {
             console.error('Failed to send notifications:', notifError);
             // Continue with the function even if notifications fail
@@ -153,8 +153,8 @@ export const getPostsByGroupId = async (
                         id: true,
                         name: true,
                         profileImageUrl: true,
-                        email: true,  // Add this
-                        phone: true,  // Add this
+                        email: true,
+                        phone: true,
                     },
                 },
             },
@@ -189,6 +189,20 @@ export const updatePostStatus = async (req: Request & { user?: { id: string } },
         // Check if the post exists and if the user is the author
         const post = await prisma.post.findUnique({
             where: { id: postId },
+            include: {
+                group: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
         });
 
         if (!post) {
@@ -204,6 +218,24 @@ export const updatePostStatus = async (req: Request & { user?: { id: string } },
             where: { id: postId },
             data: { status: validatedData.status },
         });
+
+        // If the post is marked as claimed, send a notification to group members
+        if (validatedData.status === 'CLAIMED') {
+            try {
+                await sendNotificationToGroup(post.groupId, {
+                    title: `Item ${post.postType === 'LOST' ? 'found' : 'claimed'} in ${post.group.name}`,
+                    body: `${post.author.name}'s item "${post.title}" has been ${post.postType === 'LOST' ? 'found' : 'claimed'}!`,
+                    data: {
+                        postId: post.id,
+                        groupId: post.groupId,
+                        type: 'POST_CLAIMED'
+                    }
+                }, userId); // Exclude the user who updated the post
+            } catch (notifError) {
+                console.error('Failed to send claim notifications:', notifError);
+                // Continue with the function even if notifications fail
+            }
+        }
 
         return res.status(200).json({ message: "Post status updated successfully!", post: updatedPost });
     } catch (error) {

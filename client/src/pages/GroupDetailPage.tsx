@@ -25,8 +25,10 @@ const GroupDetailPage: React.FC = () => {
   const [groupDetails, setGroupDetails] = useState<GroupDetails | null>(
     locationState?.groupDetails || null
   );
-  const [loading, setLoading] = useState(true);
+  const [detailsLoading, setDetailsLoading] = useState(!locationState?.groupDetails);
+  const [postsLoading, setPostsLoading] = useState(true);
   const [membersLoading, setMembersLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showPostModal, setShowPostModal] = useState(false);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -36,13 +38,15 @@ const GroupDetailPage: React.FC = () => {
     const fetchGroupDetails = async () => {
       if (!user?.token || !groupId) return;
       
-      // Skip fetching if we already have the details
+      // Skip fetching if we already have the details with matching ID
       if (groupDetails && groupDetails.id === groupId) {
-        setLoading(false);
+        setDetailsLoading(false);
         return;
       }
 
-      setLoading(true);
+      setDetailsLoading(true);
+      setError(null);
+      
       try {
         const res = await axios.get(`${backendUrl}groups/${groupId}`, {
           headers: {
@@ -52,20 +56,21 @@ const GroupDetailPage: React.FC = () => {
         setGroupDetails(res.data);
       } catch (err) {
         console.error('Error fetching group details:', err);
+        setError('Failed to load group details. Please try again.');
       } finally {
-        setLoading(false);
+        setDetailsLoading(false);
       }
     };
 
     fetchGroupDetails();
-  }, [groupId, user?.token, backendUrl, groupDetails]);
+  }, [groupId, user?.token, backendUrl]);  // Removed groupDetails from dependency array
 
   // Fetch posts for the group
   useEffect(() => {
     const fetchPosts = async () => {
       if (!user?.token || !groupId) return;
 
-      setLoading(true);
+      setPostsLoading(true);
       try {
         const res = await axios.get(`${backendUrl}posts/group/${groupId}`, {
           headers: {
@@ -84,7 +89,7 @@ const GroupDetailPage: React.FC = () => {
         console.error('Error fetching posts:', err);
         setPosts([]);
       } finally {
-        setLoading(false);
+        setPostsLoading(false);
       }
     };
 
@@ -174,7 +179,8 @@ const GroupDetailPage: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  if (loading && !groupDetails) {
+  // If details are loading, show the loading indicator
+  if (detailsLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-20 px-4">
         <Loader2 className="animate-spin h-8 w-8 text-gray-600 mb-4" />
@@ -183,15 +189,28 @@ const GroupDetailPage: React.FC = () => {
     );
   }
 
+  // If there was an error or no group details after loading
+  if (error || !groupDetails) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center pt-20 px-4">
+        <p className="text-red-500 font-medium text-lg">{error || "Could not load group details"}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {groupDetails && (
-        <GroupNavbar 
-          group={groupDetails}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-        />
-      )}
+      <GroupNavbar 
+        group={groupDetails}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-6 mt-16">
         {activeTab === 'POSTS' && (
@@ -268,7 +287,7 @@ const GroupDetailPage: React.FC = () => {
               </div>
             </div>
             
-            {loading ? (
+            {postsLoading ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <Loader2 className="animate-spin h-8 w-8 text-gray-600 mb-4" />
                 <p className="text-gray-700 font-medium text-lg">Loading posts...</p>

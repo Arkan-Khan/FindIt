@@ -89,7 +89,11 @@ const GroupDetailPage: React.FC = () => {
         
         // Check if posts array exists and set it
         if (res.data && Array.isArray(res.data.posts)) {
-          setPosts(res.data.posts);
+          // Sort posts by creation date (newest first)
+          const sortedPosts = [...res.data.posts].sort((a, b) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+          setPosts(sortedPosts);
         } else {
           console.error("Invalid posts data format:", res.data);
           setPosts([]);
@@ -166,6 +170,7 @@ const GroupDetailPage: React.FC = () => {
         profileImageUrl: user?.user?.profileImageUrl
       }
     };
+    // Add new post at the beginning of the posts array (newest first)
     setPosts(prevPosts => [enhancedPost, ...prevPosts]);
   };
 

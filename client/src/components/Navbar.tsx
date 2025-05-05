@@ -22,18 +22,15 @@ const Navbar = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleLogout = async () => {
-    console.log("🔒 Initiating logout...");
   
     setShowDropdown(false);
     setShowProfileModal(false);
     setShowImageModal(false);
     const FCM_TOKEN_KEY = 'fcm_token';
     const fcmToken = localStorage.getItem(FCM_TOKEN_KEY);
-    console.log("📦 Retrieved FCM token from localStorage:", fcmToken);
   
     if (fcmToken && user?.token) {
       try {
-        console.log("🗑️ Sending request to delete FCM token from server...");
         await axios.delete(`${backendUrl}notifications/tokens`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -42,7 +39,6 @@ const Navbar = () => {
             token: fcmToken,
           },
         });
-        console.log("✅ FCM token successfully deleted from database.");
       } catch (err) {
         console.error("❌ Failed to delete FCM token:", err);
       }
@@ -51,13 +47,10 @@ const Navbar = () => {
     }
   
     localStorage.removeItem(FCM_TOKEN_KEY);
-    console.log("🧹 FCM token removed from localStorage.");
   
     setUser(null);
-    console.log("👤 User state cleared.");
   
     setTimeout(() => {
-      console.log("🚪 Navigating to home page...");
       navigate("/", { replace: true });
     }, 10);
   };

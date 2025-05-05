@@ -27,7 +27,7 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
   };
 
   const openImageModal = () => {
-    if (group.groupImageUrl) {
+    if (group?.groupImageUrl) {
       setShowImageModal(true);
     }
   };
@@ -43,6 +43,37 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
   const toggleMobileMenu = () => {
     setShowMobileMenu(!showMobileMenu);
   };
+
+  // Ensure we have group data before rendering
+  if (!group || !group.id) {
+    return (
+      <div className="bg-black py-3 shadow-md fixed top-0 left-0 right-0 z-50">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleGoBack}
+                className="p-1 rounded-full hover:bg-gray-800 text-white"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white">
+                <img
+                  src="/default-group.png"
+                  alt="Group"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="text-white font-bold text-xl truncate max-w-[150px] md:max-w-xs">
+                Loading...
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -66,6 +97,10 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
                   src={group.groupImageUrl || '/default-group.png'}
                   alt={group.name}
                   className="h-full w-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/default-group.png';
+                  }}
                 />
               </div>
               <span className="text-white font-bold text-xl truncate max-w-[150px] md:max-w-xs">

@@ -17,7 +17,6 @@ export const deleteCloudinaryImage = async (imageUrl: string) => {
     const public_id = `${folder}/${publicIdWithExt}`;
 
     await cloudinary.uploader.destroy(public_id);
-    console.log('✅ Deleted old image:', public_id);
   } catch (error) {
     console.error('❌ Failed to delete image from Cloudinary:', error);
   }

@@ -1,16 +1,50 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+interface Stats {
+  totalUsers: number;
+  totalGroups: number;
+  totalPosts: number;
+  returnedItems: number;
+}
 
 const LandingPage: React.FC = () => {
+  const [stats, setStats] = useState<Stats>({
+    totalUsers: 0,
+    totalGroups: 0,
+    totalPosts: 0,
+    returnedItems: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get(`${backendUrl}stats`);
+        if (response.data.success) {
+          setStats(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <>
     <Navbar/>
     <div className="min-h-screen flex flex-col bg-gray-50">
       <section className="bg-white text-black pt-40 pb-10 px-4">
-        <div className="container mx-auto max-w-6xl flex justify-center items-center"> {/* Added flex justify-center items-center */}
-            <div className="text-center"> {/* Added text-center for centering content */}
-                <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6"> {/* Enlarged text */}
+        <div className="container mx-auto max-w-6xl flex justify-center items-center">
+            <div className="text-center">
+                <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
                     Find What You've Lost, Return What You've Found
                 </h1>
                 <p className="text-xl mb-8 text-gray-600">
@@ -75,24 +109,38 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">Making a Difference</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-              <h3 className="text-black text-4xl font-bold mb-2">1,200+</h3>
+              <h3 className="text-black text-4xl font-bold mb-2">
+                {loading ? "..." : stats.returnedItems.toLocaleString()}
+              </h3>
               <p className="text-gray-600">Items Returned</p>
             </div>
             
             <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-              <h3 className="text-black text-4xl font-bold mb-2">500+</h3>
+              <h3 className="text-black text-4xl font-bold mb-2">
+                {loading ? "..." : stats.totalGroups.toLocaleString()}
+              </h3>
               <p className="text-gray-600">Active Communities</p>
             </div>
             
             <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-              <h3 className="text-black text-4xl font-bold mb-2">5,000+</h3>
+              <h3 className="text-black text-4xl font-bold mb-2">
+                {loading ? "..." : stats.totalUsers.toLocaleString()}
+              </h3>
               <p className="text-gray-600">Registered Users</p>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm p-6 text-center">
+              <h3 className="text-black text-4xl font-bold mb-2">
+                {loading ? "..." : stats.totalPosts.toLocaleString()}
+              </h3>
+              <p className="text-gray-600">Total Items Posted</p>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-gray-800 to-black text-white py-10 px-4">

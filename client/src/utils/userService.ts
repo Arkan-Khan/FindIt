@@ -33,7 +33,6 @@ export const updateUserProfile = async (
     }
 
     const responseData: UpdateProfileResponse = await response.json();
-    console.log('Profile update success:', responseData);
     
     // Ensure we're returning the user object from the response
     if (!responseData.user) {

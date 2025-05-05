@@ -23,19 +23,14 @@ const NotificationHandler = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [tokenRegistered, setTokenRegistered] = useState(false);
 
-  // Handle token registration only once when component mounts or user changes
   useEffect(() => {
-    // Track if the component is still mounted
     let isMounted = true;
-
-    // Request permission and save FCM token when user logs in
     const registerToken = async () => {
       if (!user?.token || tokenRegistered) return;
       
       try {
         const fcmToken = await requestNotificationPermission();
         if (fcmToken && isMounted) {
-          // Save the token to the backend
           await axios.post(
             `${backendUrl}notifications/tokens`,
             { token: fcmToken },
@@ -45,12 +40,10 @@ const NotificationHandler = () => {
               },
             }
           );
-          console.log('FCM token saved to backend');
           setTokenRegistered(true);
         }
       } catch (error) {
         console.error('Error saving FCM token:', error);
-        // If there was an error, we'll try again next time
       }
     };
 
@@ -69,8 +62,6 @@ const NotificationHandler = () => {
         const messageListener = onMessageListener();
         const payload = await messageListener as NotificationPayload;
 
-        // Check if we should display the notification
-        // Create and show browser notification
         if (Notification.permission === 'granted' && payload) {
           const title = payload.notification?.title || 'New Notification';
           const options = {

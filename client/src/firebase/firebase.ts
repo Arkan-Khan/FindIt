@@ -38,7 +38,6 @@ export const requestNotificationPermission = async () => {
   try {
     const savedToken = localStorage.getItem(FCM_TOKEN_KEY);
     if (savedToken) {
-      console.log('Using existing FCM token from local storage');
       return savedToken;
     }
     
@@ -58,7 +57,6 @@ export const requestNotificationPermission = async () => {
       
       if (token) {
         localStorage.setItem(FCM_TOKEN_KEY, token);
-        console.log('FCM Token saved to local storage:', token);
       }
       return token;
     }

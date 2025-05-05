@@ -6,7 +6,7 @@ import groupRoutes from "./routes/group.routes";
 import postRoutes from "./routes/post.routes"
 import commentsRoutes from "./routes/comments.routes"
 import notificationRoutes from "./routes/notification.routes";
-
+import statsRoutes from "./routes/stats.routes"; // Import the new stats routes
 
 dotenv.config();
 
@@ -23,6 +23,7 @@ app.use("/groups", groupRoutes);
 app.use("/posts", postRoutes)
 app.use("/comments", commentsRoutes)
 app.use("/notifications", notificationRoutes);
+app.use("/stats", statsRoutes); // Add the stats routes
 app.use("/", (req, res) => {
     res.status(200).json({
         msg: "Backend up"

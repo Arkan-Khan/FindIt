@@ -25,7 +25,7 @@ const GroupDetailPage: React.FC = () => {
   const [groupDetails, setGroupDetails] = useState<GroupDetails | null>(
     locationState?.groupDetails || null
   );
-  const [detailsLoading, setDetailsLoading] = useState(!locationState?.groupDetails);
+  const [detailsLoading, setDetailsLoading] = useState(true);
   const [postsLoading, setPostsLoading] = useState(true);
   const [membersLoading, setMembersLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,37 +33,46 @@ const GroupDetailPage: React.FC = () => {
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-  // Fetch group details only if not passed from GroupsPage
+  // Fetch group details if not passed from GroupsPage
   useEffect(() => {
     const fetchGroupDetails = async () => {
       if (!user?.token || !groupId) return;
-      
-      // Skip fetching if we already have the details with matching ID
+  
       if (groupDetails && groupDetails.id === groupId) {
         setDetailsLoading(false);
         return;
       }
-
+  
       setDetailsLoading(true);
       setError(null);
-      
+  
       try {
         const res = await axios.get(`${backendUrl}groups/${groupId}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
-        setGroupDetails(res.data);
+  
+        // Only pick the required fields
+        const { id, name, code, groupImageUrl } = res.data;
+        setGroupDetails({ id, name, code, groupImageUrl });
       } catch (err) {
-        console.error('Error fetching group details:', err);
-        setError('Failed to load group details. Please try again.');
+        console.error("Error fetching group details:", err);
+  
+        if (axios.isAxiosError(err)) {
+          const msg = err.response?.data?.message || "Failed to load group details. Please try again.";
+          setError(msg);
+        } else {
+          setError("Failed to load group details. Please try again.");
+        }
       } finally {
         setDetailsLoading(false);
       }
     };
-
+  
     fetchGroupDetails();
-  }, [groupId, user?.token, backendUrl]);  // Removed groupDetails from dependency array
+  }, [groupId, user?.token, backendUrl]);
+  
 
   // Fetch posts for the group
   useEffect(() => {

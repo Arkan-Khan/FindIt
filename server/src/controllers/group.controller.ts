@@ -377,3 +377,69 @@ export const updateGroup = async (
         return res.status(500).json({ message: "Something went wrong" });
     }
 };
+
+// Get Single Group Details Controller
+export const getGroupById = async (
+    req: Request & { user?: { id: string; email: string } },
+    res: Response
+) => {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        // Validate groupId from request params
+        const groupIdSchema = z.object({
+            groupId: z.string().uuid("Invalid group ID format"),
+        });
+
+        const { groupId } = groupIdSchema.parse(req.params);
+
+        // Check if the group exists and if the user is a member
+        const group = await prisma.group.findUnique({
+            where: { id: groupId },
+            include: {
+              creator: {
+                select: {
+                  id: true,
+                },
+              },
+              members: {
+                where: {
+                  userId,
+                },
+                select: {
+                  userId: true,
+                },
+              },
+            },
+        });          
+
+        if (!group) {
+            return res.status(404).json({ message: "Group not found" });
+        }
+
+        // Check if the user is a member of the group
+        if (group.members.length === 0 && group.creator.id !== userId) {
+            return res.status(403).json({ message: "You are not a member of this group" });
+        }
+
+        // Format the response
+        const groupDetails = {
+            id: group.id,
+            name: group.name,
+            code: group.code,
+            groupImageUrl: group.groupImageUrl
+        };
+
+        return res.status(200).json(groupDetails);
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ errors: error.errors });
+        }
+        console.error(error);
+        return res.status(500).json({ message: "Something went wrong" });
+    }
+};

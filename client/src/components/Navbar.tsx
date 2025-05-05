@@ -8,6 +8,7 @@ import ImageModal from './ImageModal';
 import { UserState } from '../types/user';
 import GitHubStars from '../utils/GitHubStars';
 import { Search, Menu, X, ChevronDown } from 'lucide-react';
+import axios from "axios";
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -18,16 +19,46 @@ const Navbar = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    console.log("🔒 Initiating logout...");
+  
     setShowDropdown(false);
     setShowProfileModal(false);
     setShowImageModal(false);
- 
+    const FCM_TOKEN_KEY = 'fcm_token';
+    const fcmToken = localStorage.getItem(FCM_TOKEN_KEY);
+    console.log("📦 Retrieved FCM token from localStorage:", fcmToken);
+  
+    if (fcmToken && user?.token) {
+      try {
+        console.log("🗑️ Sending request to delete FCM token from server...");
+        await axios.delete(`${backendUrl}notifications/tokens`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+          data: {
+            token: fcmToken,
+          },
+        });
+        console.log("✅ FCM token successfully deleted from database.");
+      } catch (err) {
+        console.error("❌ Failed to delete FCM token:", err);
+      }
+    } else {
+      console.warn("⚠️ No FCM token or user token found; skipping server deletion.");
+    }
+  
+    localStorage.removeItem(FCM_TOKEN_KEY);
+    console.log("🧹 FCM token removed from localStorage.");
+  
     setUser(null);
-    
+    console.log("👤 User state cleared.");
+  
     setTimeout(() => {
-      navigate('/', { replace: true });
+      console.log("🚪 Navigating to home page...");
+      navigate("/", { replace: true });
     }, 10);
   };
 

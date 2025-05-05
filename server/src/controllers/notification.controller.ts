@@ -42,3 +42,30 @@ import { Request, Response } from "express";
      return res.status(500).json({ message: "Something went wrong" });
    }
  };
+
+export const deleteFcmToken = async (req: Request & { user?: { id: string } }, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { token } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!token) {
+      return res.status(400).json({ message: "Token is required" });
+    }
+
+    await prisma.fcmToken.deleteMany({
+      where: {
+        token,
+        userId,
+      },
+    });
+
+    return res.status(200).json({ message: "FCM token deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};

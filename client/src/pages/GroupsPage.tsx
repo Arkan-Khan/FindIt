@@ -7,6 +7,7 @@ import { UserState } from '../types/user';
 import { Group, GroupDetails } from '../types/group';
 import CreateGroupModal from '../components/CreateGroupModal';
 import JoinGroupModal from '../components/JoinGroupModal';
+import ImageModal from '../components/ImageModal';
 import { Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
@@ -16,6 +17,8 @@ const GroupsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
 
   const navigate = useNavigate();
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -49,7 +52,6 @@ const GroupsPage: React.FC = () => {
 
   const handleCreateOrJoinSuccess = (newGroup: Group) => {
     setMyGroups(prev => {
-      // Check if the group already exists
       const exists = prev.some(g => g.id === newGroup.id);
       if (exists) {
         return prev;
@@ -74,12 +76,18 @@ const GroupsPage: React.FC = () => {
     navigate(`/groups/${group.id}`, { state: { groupDetails } });
   };
 
+  const handleImageClick = (e: React.MouseEvent, imageUrl: string, altText: string) => {
+    e.stopPropagation();
+    setSelectedImage({ url: imageUrl, alt: altText });
+    setShowImageModal(true);
+  };
+
   return (
     <>
     <Navbar/>
-    <div className="min-h-screen w-full bg-gray-50 pt-20 px-4 md:px-8">
+    <div className="min-h-screen w-full bg-gray-200 pt-20 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 border-b border-gray-300 pb-4">
+        <div className="mb-8 border-b border-black pb-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Groups</h1>
         </div>
 
@@ -127,10 +135,13 @@ const GroupsPage: React.FC = () => {
               <div
                 key={group.id}
                 onClick={() => handleGroupClick(group)}
-                className="flex items-center bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow"
+                className="flex items-center bg-white border border-black rounded-lg p-4 cursor-pointer hover:shadow-lg hover:shadow-blue-400 transition-shadow"
               >
                 <div className="flex-shrink-0 mr-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
+                  <div 
+                    className="w-16 h-16 rounded-full overflow-hidden border border-black cursor-pointer"
+                    onClick={(e) => handleImageClick(e, group.groupImageUrl || '/default-group.png', group.name)}
+                  >
                     <img
                       src={group.groupImageUrl || '/default-group.png'}
                       alt={group.name}
@@ -157,6 +168,15 @@ const GroupsPage: React.FC = () => {
         )}
       </div>
     </div>
+
+    {/* Image Modal */}
+    {showImageModal && selectedImage && (
+      <ImageModal
+        imageUrl={selectedImage.url}
+        altText={selectedImage.alt}
+        onClose={() => setShowImageModal(false)}
+      />
+    )}
     </>
   );
 };

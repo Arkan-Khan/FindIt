@@ -4,7 +4,6 @@ import { addComment, getCommentsByPostId } from "../controllers/comments.control
 
 const router = express.Router();
 
-// Routes
 // @ts-ignore
 router.post("/", authenticateUser, addComment); // Add a comment to a post
 // @ts-ignore

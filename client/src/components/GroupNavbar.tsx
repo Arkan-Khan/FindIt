@@ -44,7 +44,6 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
     setShowMobileMenu(!showMobileMenu);
   };
 
-  // Ensure we have group data before rendering
   if (!group || !group.id) {
     return (
       <div className="bg-black py-3 shadow-md fixed top-0 left-0 right-0 z-50">
@@ -80,7 +79,6 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
       <div className="bg-black py-3 shadow-md fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            {/* Left side - Back Arrow and Group Info */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleGoBack}
@@ -107,8 +105,7 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
                 {group.name}
               </span>
             </div>
-  
-            {/* Desktop Navigation */}
+
             <div className="hidden md:flex items-center space-x-8">
               <nav className="flex space-x-4">
                 <button
@@ -132,8 +129,7 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
                   Members
                 </button>
               </nav>
-  
-              {/* Group Code */}
+
               <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-sm">
                 <span className="font-mono">Code: {group.code}</span>
                 <button
@@ -148,8 +144,7 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
                 </button>
               </div>
             </div>
-  
-            {/* Mobile Menu Button */}
+
             <div className="md:hidden">
               <button 
                 onClick={toggleMobileMenu}
@@ -160,12 +155,10 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
             </div>
           </div>
         </div>
-  
-        {/* Mobile Menu */}
+
         {showMobileMenu && (
           <div className="md:hidden bg-black border-t border-gray-700 py-2 px-4 mt-3">
             <div className="flex flex-col items-center space-y-2">
-              {/* Posts and Members buttons in same row */}
               <div className="flex w-full">
                 <button
                   onClick={() => {
@@ -207,7 +200,6 @@ const GroupNavbar: React.FC<GroupNavbarProps> = ({ group, activeTab, onTabChange
         )}
       </div>
   
-      {/* Image Modal */}
       {showImageModal && group.groupImageUrl && (
         <ImageModal 
           imageUrl={group.groupImageUrl} 

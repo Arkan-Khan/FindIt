@@ -66,7 +66,6 @@ const Navbar = () => {
           setShowDropdown(false);
         }, 3000);
       } else {
-        // If we're closing it, clear the timer
         if (dropdownTimerRef.current) {
           clearTimeout(dropdownTimerRef.current);
           dropdownTimerRef.current = null;
@@ -106,10 +105,9 @@ const Navbar = () => {
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center space-x-2">
               <Search className="w-6 h-6 text-white" />
-              <span className="text-white font-bold text-xl">FindIt</span>
+              <span className="text-white font-bold text-xl">FindIT</span>
             </Link>
 
-            {/* Main navigation items */}
             <div className="flex items-center space-x-4 md:space-x-8">
               <div className="h-8 flex items-center">
                 <GitHubStars repoUrl="https://github.com/Arkan-Khan/FindIt" />
@@ -168,7 +166,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {!user && mobileMenuOpen && (
           <div className="md:hidden bg-black px-4 pt-4 pb-2 space-y-2">
             {pathname !== '/login' && (

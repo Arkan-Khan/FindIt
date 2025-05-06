@@ -11,7 +11,6 @@ const ProtectedRoute = ({ children }: Props) => {
   const user = useRecoilValue(userAtom);
 
   if (!user) {
-    // Redirect to access denied page instead of home
     return <Navigate to="/access-denied" replace />;
   }
 

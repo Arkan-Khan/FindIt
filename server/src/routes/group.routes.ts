@@ -11,12 +11,10 @@ import {
 
 const router = express.Router();
 
-// Wrapper to handle async errors
 const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-// Routes
 // @ts-ignore
 router.post("/create", authenticateUser, asyncHandler(createGroup)); // Create a new group
 // @ts-ignore

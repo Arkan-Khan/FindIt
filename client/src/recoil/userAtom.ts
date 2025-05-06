@@ -1,4 +1,3 @@
-// src/recoil/userAtom.ts
 import { atom } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
 

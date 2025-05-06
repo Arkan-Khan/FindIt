@@ -33,7 +33,6 @@ const GroupDetailPage: React.FC = () => {
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-  // Fetch group details if not passed from GroupsPage
   useEffect(() => {
     const fetchGroupDetails = async () => {
       if (!user?.token || !groupId) return;
@@ -53,7 +52,6 @@ const GroupDetailPage: React.FC = () => {
           },
         });
   
-        // Only pick the required fields
         const { id, name, code, groupImageUrl } = res.data;
         setGroupDetails({ id, name, code, groupImageUrl });
       } catch (err) {
@@ -73,8 +71,6 @@ const GroupDetailPage: React.FC = () => {
     fetchGroupDetails();
   }, [groupId, user?.token, backendUrl]);
   
-
-  // Fetch posts for the group
   useEffect(() => {
     const fetchPosts = async () => {
       if (!user?.token || !groupId) return;
@@ -87,9 +83,7 @@ const GroupDetailPage: React.FC = () => {
           },
         });
         
-        // Check if posts array exists and set it
         if (res.data && Array.isArray(res.data.posts)) {
-          // Sort posts by creation date (newest first)
           const sortedPosts = [...res.data.posts].sort((a, b) => {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           });
@@ -109,7 +103,6 @@ const GroupDetailPage: React.FC = () => {
     fetchPosts();
   }, [groupId, user?.token, backendUrl]);
 
-  // Fetch members when the Members tab is activated
   useEffect(() => {
     const fetchMembers = async () => {
       if (!user?.token || !groupId) return;
@@ -142,13 +135,11 @@ const GroupDetailPage: React.FC = () => {
   }, [groupId, user?.token, backendUrl, activeTab]);
 
   const filteredPosts = posts.filter(post => {
-    // First apply search filter
     const matchesSearch = !searchTerm || 
       post.title.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (!matchesSearch) return false;
     
-    // Then apply category filter
     if (filter === 'ALL') return true;
     if (filter === 'LOST') return post.postType === 'LOST' && post.status === 'ACTIVE';
     if (filter === 'FOUND') return post.postType === 'FOUND' && post.status === 'ACTIVE';
@@ -170,7 +161,6 @@ const GroupDetailPage: React.FC = () => {
         profileImageUrl: user?.user?.profileImageUrl
       }
     };
-    // Add new post at the beginning of the posts array (newest first)
     setPosts(prevPosts => [enhancedPost, ...prevPosts]);
   };
 
@@ -193,7 +183,6 @@ const GroupDetailPage: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  // If details are loading, show the loading indicator
   if (detailsLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-20 px-4">
@@ -203,7 +192,6 @@ const GroupDetailPage: React.FC = () => {
     );
   }
 
-  // If there was an error or no group details after loading
   if (error || !groupDetails) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-20 px-4">
@@ -219,7 +207,7 @@ const GroupDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-200">
       <GroupNavbar 
         group={groupDetails}
         activeTab={activeTab}
@@ -229,7 +217,6 @@ const GroupDetailPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-6 mt-16">
         {activeTab === 'POSTS' && (
           <>
-            {/* Search Bar */}
             <div className="mb-4">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -245,7 +232,6 @@ const GroupDetailPage: React.FC = () => {
               </div>
             </div>
             
-            {/* Filter Tabs */}
             <div className="mb-6 overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 pb-2 min-w-max">
                 <button
@@ -260,7 +246,7 @@ const GroupDetailPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setFilter('MY_POSTS')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-black ${
                     filter === 'MY_POSTS' 
                       ? 'bg-purple-500 text-white' 
                       : 'bg-white text-gray-700 border border-gray-300'
@@ -270,7 +256,7 @@ const GroupDetailPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setFilter('LOST')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-black ${
                     filter === 'LOST' 
                       ? 'bg-red-500 text-white' 
                       : 'bg-white text-gray-700 border border-gray-300'
@@ -280,7 +266,7 @@ const GroupDetailPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setFilter('FOUND')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-black ${
                     filter === 'FOUND' 
                       ? 'bg-green-500 text-white' 
                       : 'bg-white text-gray-700 border border-gray-300'
@@ -290,7 +276,7 @@ const GroupDetailPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setFilter('CLAIMED')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-black ${
                     filter === 'CLAIMED' 
                       ? 'bg-yellow-500 text-black' 
                       : 'bg-white text-gray-700 border border-gray-300'

@@ -1,8 +1,6 @@
 import * as admin from 'firebase-admin';
- import { ServiceAccount } from 'firebase-admin';
- 
- // Load your service account key JSON file
- // You need to download this from Firebase Console > Project Settings > Service Accounts
+import { ServiceAccount } from 'firebase-admin';
+
  const serviceAccount = {
    "type": process.env.FIREBASE_TYPE,
    "project_id": process.env.FIREBASE_PROJECT_ID,
@@ -15,8 +13,7 @@ import * as admin from 'firebase-admin';
    "auth_provider_x509_cert_url": process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
    "client_x509_cert_url": process.env.FIREBASE_CLIENT_X509_CERT_URL
  } as ServiceAccount;
- 
- // Initialize Firebase Admin
+
  if (!admin.apps.length) {
    admin.initializeApp({
      credential: admin.credential.cert(serviceAccount)

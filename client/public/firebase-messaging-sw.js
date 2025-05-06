@@ -1,7 +1,6 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-// Initialize the Firebase app in the service worker
 firebase.initializeApp({
   apiKey: "AIzaSyA3rLkHK-_A5gjTLBwu1LZu1jjEPg1sIjw",
   authDomain: "findit-e2961.firebaseapp.com",
@@ -12,43 +11,32 @@ firebase.initializeApp({
   measurementId: "G-7B9H1G8VYP"
 });
 
-// Retrieve firebase messaging
 const messaging = firebase.messaging();
 
-// Handle background messages
 messaging.onBackgroundMessage(function(payload) {
 
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/react.svg',
+    icon: '/icon.png',
     data: payload.data,
-    // This flag is important for clicking the notification to work properly
     requireInteraction: true
   };
 
-  // Show the notification
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Handle notification click
 self.addEventListener('notificationclick', function(event) {
-  
-  // Close the notification
+
   event.notification.close();
-  
-  // Get the notification data
   const groupId = event.notification.data?.groupId;
   
   if (groupId) {
-    // This will open the window or focus it if it's already open
     const url = `/groups/${groupId}`;
     
-    // Focus on an existing tab if it exists, otherwise open a new one
     event.waitUntil(
       clients.matchAll({type: 'window', includeUncontrolled: true})
         .then(function(clientList) {
-          // Check if there is already a window/tab open with the target URL
           for (var i = 0; i < clientList.length; i++) {
             var client = clientList[i];
             if (client.url.includes(groupId) && 'focus' in client) {
@@ -56,7 +44,6 @@ self.addEventListener('notificationclick', function(event) {
             }
           }
           
-          // If no matching window/tab is found, open a new one
           if (clients.openWindow) {
             return clients.openWindow(url);
           }

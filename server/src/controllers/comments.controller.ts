@@ -4,13 +4,11 @@ import { z } from "zod";
 
 const prisma = new PrismaClient();
 
-// Zod schemas for validation
 const addCommentSchema = z.object({
     postId: z.string().uuid("Invalid post ID format"),
     content: z.string().min(1, "Comment content is required"),
 });
 
-// Add Comment to a Post
 export const addComment = async (req: Request & { user?: { id: string } }, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -19,10 +17,8 @@ export const addComment = async (req: Request & { user?: { id: string } }, res: 
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Validate request body
         const validatedData = addCommentSchema.parse(req.body);
 
-        // Check if the post exists
         const post = await prisma.post.findUnique({
             where: { id: validatedData.postId },
             include: { group: true },
@@ -32,7 +28,6 @@ export const addComment = async (req: Request & { user?: { id: string } }, res: 
             return res.status(404).json({ message: "Post not found" });
         }
 
-        // Check if the user is a member of the group
         const isMember = await prisma.groupMember.findFirst({
             where: {
                 groupId: post.groupId,
@@ -44,7 +39,6 @@ export const addComment = async (req: Request & { user?: { id: string } }, res: 
             return res.status(403).json({ message: "You are not a member of this group" });
         }
 
-        // Add the comment
         const comment = await prisma.comment.create({
             data: {
                 content: validatedData.content,
@@ -63,7 +57,6 @@ export const addComment = async (req: Request & { user?: { id: string } }, res: 
     }
 };
 
-// Get Comments for a Post
 export const getCommentsByPostId = async (req: Request & { user?: { id: string } }, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -74,12 +67,10 @@ export const getCommentsByPostId = async (req: Request & { user?: { id: string }
 
         const postId = req.params.postId;
 
-        // Validate postId
         if (!postId || !z.string().uuid().safeParse(postId).success) {
             return res.status(400).json({ message: "Invalid post ID format" });
         }
 
-        // Check if the post exists
         const post = await prisma.post.findUnique({
             where: { id: postId },
             include: { group: true },
@@ -89,7 +80,6 @@ export const getCommentsByPostId = async (req: Request & { user?: { id: string }
             return res.status(404).json({ message: "Post not found" });
         }
 
-        // Check if the user is a member of the group
         const isMember = await prisma.groupMember.findFirst({
             where: {
                 groupId: post.groupId,
@@ -101,7 +91,6 @@ export const getCommentsByPostId = async (req: Request & { user?: { id: string }
             return res.status(403).json({ message: "You are not a member of this group" });
         }
 
-        // Fetch comments for the post
         const comments = await prisma.comment.findMany({
             where: { postId },
             include: {

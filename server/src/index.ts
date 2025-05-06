@@ -23,7 +23,7 @@ app.use("/groups", groupRoutes);
 app.use("/posts", postRoutes)
 app.use("/comments", commentsRoutes)
 app.use("/notifications", notificationRoutes);
-app.use("/stats", statsRoutes); // Add the stats routes
+app.use("/stats", statsRoutes);
 app.use("/", (req, res) => {
     res.status(200).json({
         msg: "Backend up"

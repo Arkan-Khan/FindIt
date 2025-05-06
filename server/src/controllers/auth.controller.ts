@@ -11,7 +11,6 @@ if (!process.env.JWT_SECRET) {
 }
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Zod validation schemas
 const signupSchema = z.object({
     name: z.string().min(1, 'Name is required'),
     email: z.string().email('Invalid email format'),
@@ -19,7 +18,7 @@ const signupSchema = z.object({
     phone: z.string()
         .regex(/^\d{10}$/, 'Phone number must be exactly 10 digits')
         .optional()
-        .or(z.literal('')), // Allows an empty string
+        .or(z.literal('')),
     profileImageUrl: z.string().url('Invalid URL format').optional(),
 });
 
@@ -28,7 +27,6 @@ const loginSchema = z.object({
     password: z.string().min(6, 'Password must be at least 6 characters long'),
 });
 
-// Signup controller
 export const signup = async (req: Request, res: Response) => {
     try {
         const validatedData = signupSchema.parse(req.body);
@@ -51,16 +49,15 @@ export const signup = async (req: Request, res: Response) => {
             },
         });
 
-        // Generate JWT token upon signup
         const token = jwt.sign(
-            { id: user.id, email: user.email }, // Payload
+            { id: user.id, email: user.email },
             JWT_SECRET, 
             { expiresIn: "7d" } 
         );
 
         res.status(201).json({ 
             message: "Signed up successfully!",
-            token,  // Sending the token
+            token,
             user: { id: user.id, name: user.name, email: user.email, phone, profileImageUrl }
         });
 
@@ -73,7 +70,6 @@ export const signup = async (req: Request, res: Response) => {
     }
 };
 
-// Login controller
 export const login = async (req: Request, res: Response) => {
     try {
         const validatedData = loginSchema.parse(req.body);
@@ -89,11 +85,10 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Wrong Password!' });
         }
 
-        // Generate JWT token with expiry
         const token = jwt.sign(
-            { id: user.id, email: user.email }, // Payload
-            JWT_SECRET, // Secret key
-            { expiresIn: "7d" } // Token expires in 7 days
+            { id: user.id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: "7d" }
         );
 
         res.status(200).json({
@@ -116,19 +111,30 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
-// controllers/authController.ts
 import { deleteCloudinaryImage } from '../utils/cloudinary';
-
 export const updateProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
 
     const updateProfileSchema = z.object({
-      phone: z.string().regex(/^\d{10}$/).optional(),
+      phone: z.union([
+        z.string().regex(/^\d{10}$/, { message: "Phone must be exactly 10 digits" }),
+        z.string().length(0).transform(() => null),
+        z.null()
+      ]).optional(),
       profileImageUrl: z.string().url().optional(),
     });
 
-    const validatedData = updateProfileSchema.parse(req.body);
+    const validatedData = updateProfileSchema.safeParse(req.body);
+    
+    if (!validatedData.success) {
+      return res.status(400).json({ 
+        message: "Validation error",
+        errors: validatedData.error.errors 
+      });
+    }
+    
+    const data = validatedData.data;
 
     const existingUser = await prisma.user.findUnique({
       where: { id: userId },
@@ -138,28 +144,49 @@ export const updateProfile = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isPhoneSame =
-      validatedData.phone === undefined || validatedData.phone === existingUser.phone;
-    const isProfileImageSame =
-      validatedData.profileImageUrl === undefined || validatedData.profileImageUrl === existingUser.profileImageUrl;
+    const phoneChanged = data.phone !== undefined && 
+                         ((data.phone === null && existingUser.phone !== null) || 
+                          (data.phone !== null && existingUser.phone !== data.phone));
+                         
+    const profileImageChanged = data.profileImageUrl !== undefined && 
+                               data.profileImageUrl !== existingUser.profileImageUrl;
 
-    if (isPhoneSame && isProfileImageSame) {
-      return res.status(400).json({ message: "No changes detected. Profile remains the same." });
+    if (!phoneChanged && !profileImageChanged) {
+      return res.status(200).json({ 
+        message: "No changes detected. Profile remains the same.",
+        user: {
+          id: existingUser.id,
+          name: existingUser.name,
+          email: existingUser.email,
+          phone: existingUser.phone,
+          profileImageUrl: existingUser.profileImageUrl,
+        }
+      });
     }
 
-    // 🔥 If new image URL is different and existing image exists, delete the old one
     if (
-      validatedData.profileImageUrl &&
+      profileImageChanged &&
       existingUser.profileImageUrl &&
-      validatedData.profileImageUrl !== existingUser.profileImageUrl
+      data.profileImageUrl !== existingUser.profileImageUrl
     ) {
-      await deleteCloudinaryImage(existingUser.profileImageUrl);
+      try {
+        await deleteCloudinaryImage(existingUser.profileImageUrl);
+      } catch (cloudinaryError) {
+        console.error("Error deleting previous image:", cloudinaryError);
+      }
     }
 
-    // ✅ Update user
+    const updateData: any = {};
+    if (phoneChanged) {
+      updateData.phone = data.phone;
+    }
+    if (profileImageChanged) {
+      updateData.profileImageUrl = data.profileImageUrl;
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: validatedData,
+      data: updateData,
     });
 
     res.status(200).json({
@@ -173,11 +200,7 @@ export const updateProfile = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ errors: error.errors });
-    }
-    console.error(error);
+    console.error("Profile update error:", error);
     res.status(500).json({ message: 'Something went wrong' });
   }
 };
-

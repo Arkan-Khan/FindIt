@@ -8,7 +8,6 @@ import { Request, Response } from "express";
    token: z.string().min(1, "Token is required"),
  });
  
- // Save FCM token
  export const saveFcmToken = async (req: Request & { user?: { id: string } }, res: Response) => {
    try {
      const userId = req.user?.id;
@@ -19,7 +18,6 @@ import { Request, Response } from "express";
  
      const validatedData = tokenSchema.parse(req.body);
  
-     // Upsert the token (create if it doesn't exist, update if it does)
      const fcmToken = await prisma.fcmToken.upsert({
        where: {
          token: validatedData.token,

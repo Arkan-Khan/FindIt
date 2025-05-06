@@ -1,16 +1,14 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import crypto from "crypto"; // For generating 6-digit alphanumeric group code
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
-// Generate a random 6-character alphanumeric string
 const generateGroupCode = (): string => {
     return crypto.randomBytes(3).toString("hex").toUpperCase();
 };
 
-// Create Group Controller
 export const createGroup = async (
     req: Request & { user?: { id: string; email: string; name: string } }, 
     res: Response
@@ -22,7 +20,6 @@ export const createGroup = async (
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Validate input using Zod
         const groupSchema = z.object({
             name: z.string().min(3, "Group name must be at least 3 characters"),
             groupImageUrl: z.string().url().optional(),
@@ -30,7 +27,6 @@ export const createGroup = async (
 
         const validatedData = groupSchema.parse(req.body);
 
-        // Generate unique 6-digit alphanumeric code
         let uniqueCode: string = "";
         let isUnique = false;
         while (!isUnique) {
@@ -39,7 +35,6 @@ export const createGroup = async (
             if (!existingGroup) isUnique = true;
         }
 
-        // Create new group
         const newGroup = await prisma.group.create({
             data: {
                 name: validatedData.name,
@@ -70,7 +65,6 @@ export const createGroup = async (
             }
         });
 
-        // Add creator as a member
         await prisma.groupMember.create({
             data: {
                 userId,
@@ -78,7 +72,6 @@ export const createGroup = async (
             },
         });
 
-        // Format the response to match the expected structure
         const formattedGroup = {
             ...newGroup,
             members: newGroup.members.map(member => member.user)
@@ -94,7 +87,6 @@ export const createGroup = async (
     }
 };
 
-// Join Group Controller
 export const joinGroup = async (
     req: Request & { user?: { id: string; email: string; name: string } }, 
     res: Response
@@ -106,14 +98,12 @@ export const joinGroup = async (
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Validate input using Zod
         const joinGroupSchema = z.object({
             code: z.string().length(6, "Group code must be exactly 6 characters"),
         });
 
         const { code } = joinGroupSchema.parse(req.body);
 
-        // Check if group exists
         const group = await prisma.group.findUnique({ 
             where: { code },
             include: {
@@ -131,7 +121,6 @@ export const joinGroup = async (
             return res.status(404).json({ message: "Group not found" });
         }
 
-        // Check if the user is already a member
         const existingMember = await prisma.groupMember.findUnique({
             where: { userId_groupId: { userId, groupId: group.id } },
         });
@@ -140,7 +129,6 @@ export const joinGroup = async (
             return res.status(400).json({ message: "You are already a member of this group" });
         }
 
-        // Add user to group
         await prisma.groupMember.create({
             data: {
                 userId,
@@ -148,7 +136,6 @@ export const joinGroup = async (
             },
         });
 
-        // Get updated group with members
         const updatedGroup = await prisma.group.findUnique({
             where: { id: group.id },
             include: {
@@ -174,7 +161,6 @@ export const joinGroup = async (
             }
         });
 
-        // Format the response to match the expected structure
         const formattedGroup = {
             ...updatedGroup,
             members: updatedGroup?.members?.map(member => member.user) || []
@@ -190,7 +176,6 @@ export const joinGroup = async (
     }
 };
 
-// Get User's Groups Controller
 export const getUserGroups = async (
     req: Request & { user?: { id: string; email: string } }, 
     res: Response
@@ -202,7 +187,6 @@ export const getUserGroups = async (
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Get groups created by user
         const createdGroups = await prisma.group.findMany({
             where: { creatorId: userId },
             select: {
@@ -215,13 +199,12 @@ export const getUserGroups = async (
                     select: {
                         id: true,
                         name: true,
-                        profileImageUrl: true, // Include creator's profile image
+                        profileImageUrl: true, 
                     },
                 },
             },
         });
 
-        // Get groups joined by user
         const joinedGroups = await prisma.groupMember.findMany({
             where: { userId },
             include: {
@@ -236,7 +219,7 @@ export const getUserGroups = async (
                             select: {
                                 id: true,
                                 name: true,
-                                profileImageUrl: true, // Include creator's profile image
+                                profileImageUrl: true,
                             },
                         },
                     },
@@ -244,7 +227,6 @@ export const getUserGroups = async (
             },
         });
 
-        // Extract group details from joinedGroups
         const joinedGroupList = joinedGroups.map((gm) => gm.group);
 
         return res.status(200).json({ createdGroups, joinedGroups: joinedGroupList });
@@ -254,7 +236,6 @@ export const getUserGroups = async (
     }
 };
 
-// Get All Group Members Controller
 export const getGroupMembers = async (
     req: Request & { user?: { id: string; email: string } },
     res: Response
@@ -266,14 +247,12 @@ export const getGroupMembers = async (
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Validate groupId from request params
         const groupIdSchema = z.object({
             groupId: z.string().uuid("Invalid group ID format"),
         });
 
         const { groupId } = groupIdSchema.parse(req.params);
 
-        // Check if the group exists
         const group = await prisma.group.findUnique({
             where: { id: groupId },
         });
@@ -282,7 +261,6 @@ export const getGroupMembers = async (
             return res.status(404).json({ message: "Group not found" });
         }
 
-        // Get all members of the group
         const groupMembers = await prisma.groupMember.findMany({
             where: { groupId },
             include: {
@@ -298,7 +276,6 @@ export const getGroupMembers = async (
             },
         });
 
-        // Extract user details from group members
         const members = groupMembers.map((gm) => gm.user);
 
         return res.status(200).json({ groupId, members });
@@ -322,14 +299,12 @@ export const updateGroup = async (
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Validate groupId from request params
         const groupIdSchema = z.object({
             groupId: z.string().uuid("Invalid group ID format"),
         });
 
         const { groupId } = groupIdSchema.parse(req.params);
 
-        // Validate input using Zod
         const updateGroupSchema = z.object({
             name: z.string().min(3, "Group name must be at least 3 characters").optional(),
             groupImageUrl: z.string().url("Invalid URL format").optional(),
@@ -337,7 +312,6 @@ export const updateGroup = async (
 
         const validatedData = updateGroupSchema.parse(req.body);
 
-        // Fetch existing group data
         const group = await prisma.group.findUnique({
             where: { id: groupId },
         });
@@ -350,7 +324,6 @@ export const updateGroup = async (
             return res.status(403).json({ message: "You are not authorized to update this group" });
         }
 
-        // Check if any value has changed
         const isSameData =
             (!validatedData.name || validatedData.name === group.name) &&
             (!validatedData.groupImageUrl || validatedData.groupImageUrl === group.groupImageUrl);
@@ -359,7 +332,6 @@ export const updateGroup = async (
             return res.status(200).json({ message: "No changes detected, update skipped" });
         }
 
-        // Update the group only if at least one field is different
         const updatedGroup = await prisma.group.update({
             where: { id: groupId },
             data: validatedData,
@@ -378,7 +350,6 @@ export const updateGroup = async (
     }
 };
 
-// Get Single Group Details Controller
 export const getGroupById = async (
     req: Request & { user?: { id: string; email: string } },
     res: Response
@@ -390,14 +361,12 @@ export const getGroupById = async (
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // Validate groupId from request params
         const groupIdSchema = z.object({
             groupId: z.string().uuid("Invalid group ID format"),
         });
 
         const { groupId } = groupIdSchema.parse(req.params);
 
-        // Check if the group exists and if the user is a member
         const group = await prisma.group.findUnique({
             where: { id: groupId },
             include: {
@@ -421,12 +390,10 @@ export const getGroupById = async (
             return res.status(404).json({ message: "Group not found" });
         }
 
-        // Check if the user is a member of the group
         if (group.members.length === 0 && group.creator.id !== userId) {
             return res.status(403).json({ message: "You are not a member of this group" });
         }
 
-        // Format the response
         const groupDetails = {
             id: group.id,
             name: group.name,

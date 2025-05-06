@@ -17,7 +17,6 @@ const updatePostStatusSchema = z.object({
     status: z.enum(["ACTIVE", "CLAIMED"]),
 });
 
-// Create Post
 export const createPost = async (req: Request & { user?: { id: string } }, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -28,7 +27,6 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
 
         const validatedData = createPostSchema.parse(req.body);
 
-        // Checking if the group exists
         const group = await prisma.group.findUnique({
             where: { id: validatedData.groupId },
         });
@@ -37,7 +35,6 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
             return res.status(404).json({ message: "Group not found" });
         }
 
-        // Checking if the user is a member of the group
         const isMember = await prisma.groupMember.findFirst({
             where: {
                 groupId: validatedData.groupId,
@@ -49,7 +46,6 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
             return res.status(403).json({ message: "You are not a member of this group" });
         }
 
-        // Create the post
         const post = await prisma.post.create({
             data: {
                 title: validatedData.title,
@@ -78,7 +74,6 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
             },
         });
 
-        // Send notification to all group members except the post creator
         try {
             await sendNotificationToGroup(validatedData.groupId, {
                 title: `New ${post.postType.toLowerCase()} item in ${post.group.name}`,
@@ -88,10 +83,9 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
                     groupId: post.groupId,
                     type: 'NEW_POST'
                 }
-            }, userId); // Exclude the user who created the post
+            }, userId);
         } catch (notifError) {
             console.error('Failed to send notifications:', notifError);
-            // Continue with the function even if notifications fail
         }
 
         return res.status(201).json({ message: "Post created successfully!", post });
@@ -104,7 +98,6 @@ export const createPost = async (req: Request & { user?: { id: string } }, res: 
     }
 };
 
-// Get Posts by Group ID
 export const getPostsByGroupId = async (
     req: Request & { user?: { id: string; email: string } },
     res: Response
@@ -118,12 +111,10 @@ export const getPostsByGroupId = async (
 
         const groupId = req.params.groupId;
 
-        // Validate groupId
         if (!groupId || !z.string().uuid().safeParse(groupId).success) {
             return res.status(400).json({ message: "Invalid group ID format" });
         }
 
-        // Check if the group exists
         const group = await prisma.group.findUnique({
             where: { id: groupId },
         });
@@ -132,7 +123,6 @@ export const getPostsByGroupId = async (
             return res.status(404).json({ message: "Group not found" });
         }
 
-        // Check if the user is the creator or a member of the group
         const isMember = await prisma.groupMember.findFirst({
             where: {
                 groupId,
@@ -144,7 +134,6 @@ export const getPostsByGroupId = async (
             return res.status(403).json({ message: "You are not a member of this group" });
         }
 
-        // Fetch posts for the group
         const posts = await prisma.post.findMany({
             where: { groupId },
             include: {
@@ -167,7 +156,6 @@ export const getPostsByGroupId = async (
     }
 };
 
-// Update Post Status
 export const updatePostStatus = async (req: Request & { user?: { id: string } }, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -178,15 +166,12 @@ export const updatePostStatus = async (req: Request & { user?: { id: string } },
 
         const postId = req.params.postId;
 
-        // Validate postId
         if (!postId || !z.string().uuid().safeParse(postId).success) {
             return res.status(400).json({ message: "Invalid post ID format" });
         }
 
-        // Validate request body
         const validatedData = updatePostStatusSchema.parse(req.body);
 
-        // Check if the post exists and if the user is the author
         const post = await prisma.post.findUnique({
             where: { id: postId },
             include: {
@@ -213,13 +198,11 @@ export const updatePostStatus = async (req: Request & { user?: { id: string } },
             return res.status(403).json({ message: "You are not authorized to update this post" });
         }
 
-        // Update the post status
         const updatedPost = await prisma.post.update({
             where: { id: postId },
             data: { status: validatedData.status },
         });
 
-        // If the post is marked as claimed, send a notification to group members
         if (validatedData.status === 'CLAIMED') {
             try {
                 await sendNotificationToGroup(post.groupId, {
@@ -230,10 +213,9 @@ export const updatePostStatus = async (req: Request & { user?: { id: string } },
                         groupId: post.groupId,
                         type: 'POST_CLAIMED'
                     }
-                }, userId); // Exclude the user who updated the post
+                }, userId);
             } catch (notifError) {
                 console.error('Failed to send claim notifications:', notifError);
-                // Continue with the function even if notifications fail
             }
         }
 

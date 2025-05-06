@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
 import { X, Upload, Loader2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 interface PostModalProps {
   groupId: string;
@@ -42,34 +43,33 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!user?.token) return;
     if (!title || !details || !imageFile) {
       setError('Please provide a title, details, and image for your post');
+      toast.error('Please fill out all required fields');
       return;
     }
-    
+  
     setLoading(true);
     setError('');
-    
+  
     try {
-      // Upload image to Cloudinary first
       const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
       const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-      
+  
       const formData = new FormData();
       formData.append('file', imageFile);
       formData.append('upload_preset', uploadPreset);
-      formData.append('folder', 'posts'); // Upload to posts folder
-      
+      formData.append('folder', 'posts');
+  
       const cloudinaryRes = await axios.post(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         formData
       );
-      
+  
       const imageUrl = cloudinaryRes.data.secure_url;
-      
-      // Create the post with the uploaded image URL
+  
       const postData = {
         title,
         details,
@@ -77,14 +77,13 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
         imageUrl,
         groupId,
       };
-      
+  
       const postRes = await axios.post(`${backendUrl}posts`, postData, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
       });
-
-      // Make sure we have complete post data with author information
+  
       const newPost = {
         ...postRes.data.post,
         author: postRes.data.post.author || {
@@ -94,12 +93,20 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
           profileImageUrl: user.user?.profileImageUrl
         }
       };
-      
+  
       onPostCreated(newPost);
       onClose();
-    } catch (err) {
+      toast.success('Post created successfully!');
+    } catch (err: any) {
       console.error('Error creating post:', err);
       setError('Failed to create post. Please try again.');
+  
+      if (axios.isAxiosError(err)) {
+        const errorMsg = err.response?.data?.message || 'Server error occurred.';
+        toast.error(`Error: ${errorMsg}`);
+      } else {
+        toast.error('Unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -123,7 +130,6 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
               </div>
             )}
             
-            {/* Image Upload */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Item Image
@@ -167,7 +173,6 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
               </div>
             </div>
             
-            {/* Item Type */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Post Type
@@ -198,7 +203,6 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
               </div>
             </div>
             
-            {/* Item Name */}
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                 Item Name <span className="text-xs text-gray-500">({title.length}/{TITLE_LIMIT})</span>
@@ -214,7 +218,6 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
               />
             </div>
             
-            {/* Item Details */}
             <div className="mb-6">
               <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
                 Item Details <span className="text-xs text-gray-500">({details.length}/{DETAILS_LIMIT})</span>
@@ -232,7 +235,6 @@ const PostModal: React.FC<PostModalProps> = ({ groupId, onClose, onPostCreated }
           </form>
         </div>
         
-        {/* Footer with buttons - fixed at bottom */}
         <div className="p-4 border-t bg-white rounded-b-lg">
           <div className="flex justify-end">
             <button

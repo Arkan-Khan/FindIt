@@ -11,8 +11,8 @@ const useLocalStorage = (key: string, initialValue: any) => {
       const item = window.localStorage.getItem(key);
       if (item) {
         const { value, timestamp } = JSON.parse(item);
-        const tenMinutesInMs = 10 * 60 * 1000;
-        const isRecent = (new Date().getTime() - timestamp) < tenMinutesInMs;
+        const oneMinuteInMs = 1 * 60 * 1000;
+        const isRecent = (new Date().getTime() - timestamp) < oneMinuteInMs;
         
         if (isRecent) {
           return value;
@@ -58,39 +58,37 @@ const GitHubStars: React.FC<GitHubStarsProps> = ({ repoUrl }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!repoInfo || !cacheKey) {
+    if (!repoInfo || !cacheKey || stars !== null) {
       setIsLoading(false);
       return;
     }
-
+  
     let isMounted = true;
     const controller = new AbortController();
-
+  
     const fetchStars = async () => {
       try {
         const response = await fetch(
-          `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}`, 
+          `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}`,
           { signal: controller.signal }
         );
-        
+  
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || `HTTP error ${response.status}`);
         }
-        
+  
         const data = await response.json();
-        
+  
         if (isMounted) {
           setStars(data.stargazers_count);
           setError(null);
         }
       } catch (error) {
-        if (isMounted) {
-          if (error instanceof Error && error.name !== 'AbortError') {
-            console.error('Failed to fetch GitHub stars:', error);
-            setError('API limit reached');
-            setStars(0);
-          }
+        if (isMounted && error instanceof Error && error.name !== 'AbortError') {
+          console.error('Failed to fetch GitHub stars:', error);
+          setError('API limit reached');
+          setStars(0);
         }
       } finally {
         if (isMounted) {
@@ -98,14 +96,15 @@ const GitHubStars: React.FC<GitHubStarsProps> = ({ repoUrl }) => {
         }
       }
     };
-
+  
     fetchStars();
-
+  
     return () => {
       isMounted = false;
       controller.abort();
     };
-  }, [repoInfo, cacheKey, stars]);
+  }, [repoInfo, cacheKey]);
+  
 
   return (
     <button 

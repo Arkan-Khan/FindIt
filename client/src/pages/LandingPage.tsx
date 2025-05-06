@@ -68,7 +68,6 @@ const LandingPage: React.FC = () => {
           <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">How FindIt Works</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
             <div className="bg-white rounded-xl shadow-md p-6 transition-transform hover:-translate-y-2">
               <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center mb-6">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,7 +78,6 @@ const LandingPage: React.FC = () => {
               <p className="text-gray-600">Connect with your college, office, apartment, or society through our group system.</p>
             </div>
 
-            {/* Feature 2 */}
             <div className="bg-white rounded-xl shadow-md p-6 transition-transform hover:-translate-y-2">
               <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center mb-6">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +88,6 @@ const LandingPage: React.FC = () => {
               <p className="text-gray-600">Create detailed posts with images and descriptions to help recover or return items.</p>
             </div>
 
-            {/* Feature 3 */}
             <div className="bg-white rounded-xl shadow-md p-6 transition-transform hover:-translate-y-2">
               <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center mb-6">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,7 +101,6 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Statistics Section */}
       <section className="bg-gray-100 py-10 px-4">
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">Making a Difference</h2>
@@ -141,8 +137,6 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-
-      {/* CTA Section */}
       <section className="bg-gradient-to-r from-gray-800 to-black text-white py-10 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Start Finding?</h2>

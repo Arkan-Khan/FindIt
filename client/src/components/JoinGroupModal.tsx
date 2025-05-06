@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
+import { toast } from 'react-toastify';
 
 interface Props {
   onClose: () => void;
@@ -15,24 +16,37 @@ const JoinGroupModal: React.FC<Props> = ({ onClose, onGroupJoined }) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleJoinGroup = async () => {
-    if (!teamCode || !user?.token) return;
+    if (!teamCode || !user?.token) {
+      toast.warning('Please enter the 6-digit group code');
+      return;
+    }
+  
+    if (teamCode.length !== 6) {
+      toast.warning('Group code must be exactly 6 characters');
+      return;
+    }
+  
     setLoading(true);
-    
+  
     try {
       const res = await axios.post(
         `${backendUrl}groups/join`,
         { code: teamCode },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
+      
+      toast.success(res.data.message || "Joined group successfully");
       onGroupJoined(res.data.group);
       setTeamCode('');
       onClose();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to join group');
+      const errorMsg = err.response?.data?.message || 'Failed to join group';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">

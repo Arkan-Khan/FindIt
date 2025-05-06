@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from '../recoil/userAtom';
+import { toast } from 'react-toastify';
 
 interface Props {
   onClose: () => void;
@@ -33,7 +34,21 @@ const CreateGroupModal: React.FC<Props> = ({ onClose, onGroupCreated }) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleCreateGroup = async () => {
-    if (!groupName || !imageFile || !user?.token) return;
+    if (!groupName) {
+      toast.error("Group name is required");
+      return;
+    }
+    
+    if (!imageFile) {
+      toast.error("Group image is required");
+      return;
+    }
+    
+    if (!user?.token) {
+      toast.error("You must be logged in");
+      return;
+    }
+
     setUploading(true);
 
     try {
@@ -62,12 +77,14 @@ const CreateGroupModal: React.FC<Props> = ({ onClose, onGroupCreated }) => {
         }
       );
 
+      toast.success("Group created successfully!");
       onGroupCreated(backendRes.data.group);
       setGroupName('');
       setImageFile(null);
       onClose();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Group creation failed');
+      const errorMessage = err.response?.data?.message || 'Group creation failed';
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }

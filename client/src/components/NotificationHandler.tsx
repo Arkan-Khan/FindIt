@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { requestNotificationPermission, onMessageListener } from '../firebase/firebase';
 
-// Define proper type for the notification payload
 interface NotificationPayload {
   notification?: {
     title?: string;
@@ -49,13 +48,11 @@ const NotificationHandler = () => {
 
     registerToken();
 
-    // Cleanup function
     return () => {
       isMounted = false;
     };
   }, [user?.token, backendUrl, tokenRegistered]);
 
-  // Handle foreground messages
   useEffect(() => {
     const handleMessage = async () => {
       try {
@@ -66,14 +63,12 @@ const NotificationHandler = () => {
           const title = payload.notification?.title || 'New Notification';
           const options = {
             body: payload.notification?.body,
-            icon: '/react.svg', // Path to your icon
-            requireInteraction: true // Keep notification until user interacts with it
+            icon: '/icon.png',
+            requireInteraction: true 
           };
           
-          // Show the browser notification
           const notification = new Notification(title, options);
-          
-          // Add click event listener to the notification
+        
           notification.onclick = () => handleNotificationClick(payload.data);
         }
       } catch (err) {
@@ -81,7 +76,6 @@ const NotificationHandler = () => {
       }
     };
 
-    // Start listening for messages
     const messageHandlerInterval = setInterval(handleMessage, 1000);
 
     return () => {
@@ -89,12 +83,10 @@ const NotificationHandler = () => {
     };
   }, [navigate]);
 
-  // Handle notification click
   const handleNotificationClick = (data?: NotificationPayload['data']) => {
     if (data?.groupId) {
       navigate(`/groups/${data.groupId}`);
       
-      // Focus on the window if it's not in focus
       if (window.focus) window.focus();
     }
   };

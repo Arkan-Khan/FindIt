@@ -1,20 +1,20 @@
-// client/src/utils/userService.ts
 import { User, UpdateProfileResponse } from '../types/user';
 
 export const updateUserProfile = async (
   token: string, 
-  updateData: { phone?: string; profileImageUrl?: string }
+  updateData: { phone?: string | null; profileImageUrl?: string }
 ): Promise<User> => {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const dataToSend = { ...updateData };
   
-  // Validate phone number if provided
-  if (updateData.phone !== undefined) {
-    // Allow empty string (to clear phone number) or exactly 10 digits
-    const phoneRegex = /^$|^\d{10}$/;
-    if (!phoneRegex.test(updateData.phone)) {
-      throw new Error('Phone number must be exactly 10 digits');
-    }
+  if (dataToSend.phone === '') {
+    dataToSend.phone = null;
   }
+  
+  if (Object.keys(dataToSend).length === 0) {
+    throw new Error('No changes to update');
+  }
+  
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   
   try {
     const response = await fetch(`${backendUrl}auth/updateProfile`, {
@@ -23,24 +23,20 @@ export const updateUserProfile = async (
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(updateData),
+      body: JSON.stringify(dataToSend),
     });
-
+    
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Profile update failed:', errorData);
+      console.error('Profile update error details:', errorData);
       throw new Error(errorData.message || 'Failed to update profile');
     }
-
-    const responseData: UpdateProfileResponse = await response.json();
     
-    // Ensure we're returning the user object from the response
-    if (!responseData.user) {
-      throw new Error('Invalid response format: missing user data');
-    }
+    const responseData: UpdateProfileResponse = await response.json();
+    console.log('Profile update response:', responseData);
     
     return responseData.user;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Profile update error:', error);
     throw error;
   }

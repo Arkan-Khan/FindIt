@@ -8,7 +8,6 @@ interface ImageModalProps {
 }
 
 const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, altText, onClose }) => {
-  // Close when clicking on the background (but not when clicking the image)
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -21,7 +20,6 @@ const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, altText, onClose }) =
       onClick={handleBackdropClick}
     >
       <div className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center">
-        {/* Close button */}
         <button 
           onClick={onClose}
           className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 p-1 rounded-full text-white hover:bg-opacity-70 transition-all"
@@ -30,7 +28,6 @@ const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, altText, onClose }) =
           <X size={24} />
         </button>
         
-        {/* Image container */}
         <div className="relative w-full h-full flex items-center justify-center">
           <img 
             src={imageUrl} 

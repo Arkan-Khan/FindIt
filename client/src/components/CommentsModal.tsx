@@ -43,7 +43,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, onClose }) => {
           },
         });
         
-        // Handle the API response format
         if (res.data && Array.isArray(res.data.comments)) {
           setComments(res.data.comments);
         } else {
@@ -81,9 +80,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, onClose }) => {
         }
       );
       
-      // Add the new comment to the list
       if (res.data && res.data.comment) {
-        // Add current user info to the returned comment
         const newCommentWithUser = {
           ...res.data.comment,
           author: {
@@ -113,7 +110,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, onClose }) => {
     });
   };
   
-  // Check if it's the current user's comment
   const isCurrentUserComment = (authorId: string) => {
     return authorId === user?.user?.id;
   };
@@ -121,7 +117,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col shadow-xl">
-        {/* Header with comment count */}
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-gray-600" />
@@ -137,7 +132,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, onClose }) => {
           </button>
         </div>
         
-        {/* Comment Form - Moved to top for better UX */}
         <div className="p-4 border-b">
           <form onSubmit={handleSubmitComment} className="flex space-x-2">
             <input
@@ -151,7 +145,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, onClose }) => {
             <button
               type="submit"
               disabled={submitting || !newComment.trim()}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center min-w-[44px]"
+              className="px-4 py-2 bg-black text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center min-w-[44px]"
             >
               {submitting ? (
                 <Loader2 className="animate-spin h-4 w-4" />
@@ -161,8 +155,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, onClose }) => {
             </button>
           </form>
         </div>
-        
-        {/* Comments List */}
+
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-8">

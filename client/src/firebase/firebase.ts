@@ -12,7 +12,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Check if messaging is supported in this browser
 const checkMessagingSupport = async () => {
   try {
     return await isSupported();

@@ -58,8 +58,16 @@ const App = () => {
       </BrowserRouter>
       <ToastContainer
         position="top-center"
-        autoClose={3000}
-      />
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+       />
     </>
   );
 };

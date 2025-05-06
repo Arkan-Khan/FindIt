@@ -4,12 +4,10 @@ export const updateUserProfile = async (
   token: string, 
   updateData: { phone?: string; profileImageUrl?: string }
 ): Promise<User> => {
-  // Filter out undefined values and empty strings
   const filteredData: { phone?: string | null; profileImageUrl?: string } = Object.fromEntries(
     Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== '')
   );
-  
-  // Handle explicit empty phone case (user wants to remove phone)
+
   if (updateData.phone === '') {
     filteredData.phone = null;
   }

@@ -40,8 +40,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
     
     setTempPhone(limitedValue);
     setHasChanges(true);
-    
-    // Show toast if user tries to enter more than 10 digits
+ 
     if (value.length > 10) {
       toast.warning('Phone number must be exactly 10 digits');
     }
@@ -104,7 +103,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
   const saveChanges = async () => {
     if (!user?.token) return;
 
-    // Validate phone number length if it's being changed
     if (tempPhone !== userData.phone && tempPhone.length > 0 && tempPhone.length < 10) {
       toast.error('Phone number must be exactly 10 digits');
       return;
@@ -113,8 +111,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
     try {
       setIsLoading(true);
       const updateData: { phone?: string; profileImageUrl?: string } = {};
-      
-      // Only include changed fields
+
       if (tempPhone !== userData.phone) {
         updateData.phone = tempPhone;
       }

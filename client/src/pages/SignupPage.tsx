@@ -18,14 +18,12 @@ const SignupPage = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const validateName = (value: string): boolean => {
-    // Only allow letters (a-z, A-Z) and spaces
     return /^[a-zA-Z\s]+$/.test(value);
   };
 
   const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setName(value);
-    // No toast notifications during typing - only visual feedback with red border and message
   };
 
   interface ApiErrorItem {
@@ -36,7 +34,6 @@ const SignupPage = () => {
   const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validate name before submitting
     if (!validateName(name)) {
       toast.error('Name should only contain letters and spaces');
       return;

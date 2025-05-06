@@ -3,6 +3,7 @@ import { UserState } from '../types/user';
 import { getUserData } from '../utils/userHelpers';
 import { optimizeImage } from '../utils/imageUtils';
 import { updateUserProfile } from '../utils/userService';
+import { toast } from 'react-toastify';
 
 type ProfileModalProps = {
   user: UserState;
@@ -39,6 +40,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
     
     setTempPhone(limitedValue);
     setHasChanges(true);
+    
+    // Show toast if user tries to enter more than 10 digits
+    if (value.length > 10) {
+      toast.warning('Phone number must be exactly 10 digits');
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +92,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
       }
     } catch (err) {
       console.error('Cloudinary upload failed:', err);
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setTimeout(() => {
         setIsUploading(false);
@@ -97,20 +104,28 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
   const saveChanges = async () => {
     if (!user?.token) return;
 
+    // Validate phone number length if it's being changed
+    if (tempPhone !== userData.phone && tempPhone.length > 0 && tempPhone.length < 10) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
+
     try {
       setIsLoading(true);
       const updateData: { phone?: string; profileImageUrl?: string } = {};
       
+      // Only include changed fields
       if (tempPhone !== userData.phone) {
-        updateData.phone = tempPhone || undefined;
+        updateData.phone = tempPhone;
       }
       
-      if (tempProfileImage !== userData.profileImageUrl) {
+      if (tempProfileImage !== userData.profileImageUrl && tempProfileImage !== '') {
         updateData.profileImageUrl = tempProfileImage;
       }
 
       if (Object.keys(updateData).length === 0) {
         setHasChanges(false);
+        toast.info('No changes to save');
         return;
       }
 
@@ -122,8 +137,10 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
       });
       
       setHasChanges(false);
+      toast.success('Profile updated successfully!');
     } catch (err) {
       console.error('Error updating profile:', err);
+      toast.error('Failed to update profile. Please try again.');
       setTempPhone(userData.phone || '');
       setTempProfileImage(userData.profileImageUrl || '');
     } finally {
@@ -136,6 +153,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
     setTempProfileImage(userData.profileImageUrl || '');
     setHasChanges(false);
     setIsEditingPhone(false);
+    toast.info('Changes cancelled');
   };
 
   return (
@@ -211,19 +229,36 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, setUser, onClose }) =
           </div>
           
           <div className="flex items-center">
+            <span className="text-gray-600 font-medium w-20">Email:</span>
+            <span className="text-gray-900">{userData.email}</span>
+          </div>
+          
+          <div className="flex items-center">
             <span className="text-gray-600 font-medium w-20">Phone:</span>
             {isEditingPhone ? (
-              <input
-                type="tel"
-                value={tempPhone}
-                onChange={handlePhoneChange}
-                onBlur={() => setIsEditingPhone(false)}
-                className="border-b border-gray-300 focus:border-black outline-none px-2 py-1 flex-1"
-                autoFocus
-                placeholder="Enter 10-digit number"
-                pattern="[0-9]{10}"
-                maxLength={10}
-              />
+              <div className="flex flex-col w-full">
+                <input
+                  type="tel"
+                  value={tempPhone}
+                  onChange={handlePhoneChange}
+                  onBlur={() => {
+                    if (tempPhone.length > 0 && tempPhone.length < 10) {
+                      toast.warning('Phone number must be exactly 10 digits');
+                    }
+                    setIsEditingPhone(false);
+                  }}
+                  className="border-b border-gray-300 focus:border-black outline-none px-2 py-1 flex-1"
+                  autoFocus
+                  placeholder="Enter 10-digit number"
+                  pattern="[0-9]{10}"
+                  maxLength={10}
+                />
+                <div className="flex justify-end mt-1">
+                  <span className={`text-xs ${tempPhone.length === 10 ? 'text-green-600' : 'text-gray-500'}`}>
+                    {tempPhone.length}/10 digits
+                  </span>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center flex-1">
                 <span className="text-gray-900">{tempPhone || 'N/A'}</span>

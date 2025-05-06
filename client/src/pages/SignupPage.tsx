@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { userAtom, UserState } from '../recoil/userAtom';
 import { useNavigate, Link } from 'react-router-dom';
@@ -17,8 +17,31 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const validateName = (value: string): boolean => {
+    // Only allow letters (a-z, A-Z) and spaces
+    return /^[a-zA-Z\s]+$/.test(value);
+  };
+
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setName(value);
+    // No toast notifications during typing - only visual feedback with red border and message
+  };
+
+  interface ApiErrorItem {
+    message?: string;
+    [key: string]: any;
+  }
+
+  const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Validate name before submitting
+    if (!validateName(name)) {
+      toast.error('Name should only contain letters and spaces');
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -48,11 +71,11 @@ const SignupPage = () => {
       } else {
         if (data.errors) {
           if (Array.isArray(data.errors)) {
-            data.errors.forEach((error: any) => {
+            data.errors.forEach((error: ApiErrorItem) => {
               toast.error(error.message || JSON.stringify(error));
             });
           } else if (typeof data.errors === 'object') {
-            Object.values(data.errors).forEach((error: any) => {
+            Object.values(data.errors).forEach((error: unknown) => {
               toast.error(typeof error === 'string' ? error : JSON.stringify(error));
             });
           } else {
@@ -90,11 +113,14 @@ const SignupPage = () => {
                 type="text"
                 placeholder="Enter Name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={handleNameChange}
                 required
                 disabled={loading}
-                className="py-2.5 text-gray-900 placeholder-gray-400 focus:ring-black focus:border-black block w-full border border-gray-300 rounded-md px-3"
+                className={`py-2.5 text-gray-900 placeholder-gray-400 focus:ring-black focus:border-black block w-full border ${!name || validateName(name) ? 'border-gray-300' : 'border-red-500'} rounded-md px-3`}
               />
+              {name && !validateName(name) && (
+                <p className="mt-1 text-xs text-red-500">Name should only contain letters and spaces</p>
+              )}
             </div>
     
             <div>
@@ -106,7 +132,7 @@ const SignupPage = () => {
                 type="email"
                 placeholder="your@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 required
                 disabled={loading}
                 className="py-2.5 text-gray-900 placeholder-gray-400 focus:ring-black focus:border-black block w-full border border-gray-300 rounded-md px-3"
@@ -122,7 +148,7 @@ const SignupPage = () => {
                 type="tel"
                 placeholder="Enter phone number"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
                 disabled={loading}
                 className="py-2.5 text-gray-900 placeholder-gray-400 focus:ring-black focus:border-black block w-full border border-gray-300 rounded-md px-3"
               />
@@ -137,7 +163,7 @@ const SignupPage = () => {
                 type="password"
                 placeholder="Enter password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 required
                 disabled={loading}
                 className="py-2.5 text-gray-900 placeholder-gray-400 focus:ring-black focus:border-black block w-full border border-gray-300 rounded-md px-3"

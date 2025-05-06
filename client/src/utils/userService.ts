@@ -2,17 +2,23 @@ import { User, UpdateProfileResponse } from '../types/user';
 
 export const updateUserProfile = async (
   token: string, 
-  updateData: { phone?: string | null; profileImageUrl?: string }
+  updateData: { phone?: string; profileImageUrl?: string }
 ): Promise<User> => {
-  const dataToSend = { ...updateData };
+  // Filter out undefined values and empty strings
+  const filteredData: { phone?: string | null; profileImageUrl?: string } = Object.fromEntries(
+    Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== '')
+  );
   
-  if (dataToSend.phone === '') {
-    dataToSend.phone = null;
+  // Handle explicit empty phone case (user wants to remove phone)
+  if (updateData.phone === '') {
+    filteredData.phone = null;
   }
   
-  if (Object.keys(dataToSend).length === 0) {
+  if (Object.keys(filteredData).length === 0) {
     throw new Error('No changes to update');
   }
+  
+  console.log('Sending update data:', filteredData);
   
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   
@@ -23,7 +29,7 @@ export const updateUserProfile = async (
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(dataToSend),
+      body: JSON.stringify(filteredData),
     });
     
     if (!response.ok) {

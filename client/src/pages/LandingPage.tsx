@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from "../components/Helpers/Footer.tsx";
 import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -41,31 +42,32 @@ const LandingPage: React.FC = () => {
     <>
     <Navbar/>
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <section className="bg-white text-black pt-40 pb-10 px-4">
+    <section className="bg-white text-black pt-40 pb-10 px-4">
         <div className="container mx-auto max-w-6xl flex justify-center items-center">
-            <div className="text-center">
-                <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-                    Find What You've Lost, Return What You've Found
-                </h1>
-                <p className="text-xl mb-8 text-gray-600">
-                    Connect with your community to recover lost items and help others find theirs.
-                </p>
-                <div className="flex flex-col sm:flex-row sm:space-x-4 justify-center items-center space-y-4 sm:space-y-0">
-                <Link
-                  to="/signup"
-                  className="bg-black text-white hover:bg-gray-800 px-6 py-3 rounded-lg font-medium text-center transition-colors w-fit mx-auto"
-                >
-                  Get Started
-                </Link>
-              </div>
-
+          <div className="text-center">
+            <h1 className="font-bold leading-tight mb-6">
+              <div className="text-5xl md:text-6xl">Find What You've Lost</div>
+              <div className="text-4xl md:text-5xl my-2">&</div>
+              <div className="text-5xl md:text-6xl">Return What You've Found</div>
+            </h1>
+            <p className="text-xl mb-8 text-gray-600">
+              Connect with your community to recover lost items and help others find theirs.
+            </p>
+            <div className="flex flex-col sm:flex-row sm:space-x-4 justify-center items-center space-y-4 sm:space-y-0">
+              <Link
+                to="/signup"
+                className="bg-black text-white hover:bg-gray-800 px-6 py-3 rounded-lg font-medium text-center transition-colors w-fit mx-auto"
+              >
+                Get Started
+              </Link>
             </div>
+          </div>
         </div>
       </section>
 
       <section className="pt-10 pb-10 px-4">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">How FindIt Works</h2>
+          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">How FindIt Works</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-xl shadow-md p-6 transition-transform hover:-translate-y-2">
@@ -103,7 +105,7 @@ const LandingPage: React.FC = () => {
 
       <section className="bg-gray-100 py-10 px-4">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">Making a Difference</h2>
+          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Making a Difference</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-sm p-6 text-center">
@@ -151,6 +153,7 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
     </>
   );
